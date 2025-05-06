@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recuperar Senha | Karômetro</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #2c3e50, #4CAF50);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .recovery-container {
+      background-color: #ffffff;
+      color: #333;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .logo i {
+      margin-right: 0.5rem;
+      color: #4CAF50;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.2rem;
+      color: #2c3e50;
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .input-field {
+      display: flex;
+      align-items: center;
+      background: #f2f2f2;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+    }
+
+    .input-field i {
+      margin-right: 0.5rem;
+      color: #666;
+    }
+
+    .input-field input {
+      border: none;
+      outline: none;
+      background: transparent;
+      flex: 1;
+      font-size: 1rem;
+      color: #333;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #333;
+    }
+
+    .message {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    .message.success {
+      color: #27ae60;
+    }
+
+    .message.error {
+      color: #e74c3c;
+    }
+
+    .back-link {
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    .back-link a {
+      color: #333;
+      text-decoration: none;
+    }
+
+    .back-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="recovery-container">
+    <div class="logo">
+      <i class="fas fa-unlock-alt"></i>
+      <span>Recuperar Senha</span>
+    </div>
+
+    <h2>Insira seu e-mail para recuperar a senha</h2>
+
+    <form id="recoveryForm">
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <div class="input-field">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="email" name="email" placeholder="seu@email.com" required />
+        </div>
+      </div>
+
+      <button type="submit" class="btn">Enviar instruções</button>
+    </form>
+
+    <div class="message" id="mensagem"></div>
+
+    <div class="back-link">
+      <a href="login.html"><i class="fas fa-arrow-left"></i> Voltar ao login</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('recoveryForm');
+    const emailInput = document.getElementById('email');
+    const mensagem = document.getElementById('mensagem');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      mensagem.textContent = '';
+      mensagem.className = 'message';
+
+      const email = emailInput.value.trim();
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        mensagem.textContent = 'Por favor, insira um e-mail válido.';
+        mensagem.classList.add('error');
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:3000/auth/recuperar-senha', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.message || 'Erro ao solicitar recuperação.');
+
+        mensagem.textContent = '✅ Verifique seu e-mail para continuar a recuperação.';
+        mensagem.classList.add('success');
+      } catch (error) {
+        mensagem.textContent = `❌ ${error.message}`;
+        mensagem.classList.add('error');
+      }
+    });
+  </script>
+</body>
+</html>

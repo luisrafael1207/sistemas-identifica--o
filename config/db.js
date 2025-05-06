@@ -21,7 +21,7 @@ db.getConnection((err, connection) => {
     } else {
         console.log('✅ Banco de dados conectado com sucesso!');
         connection.release(); // Libera a conexão após o teste
-    };
+    }
 });
 
 

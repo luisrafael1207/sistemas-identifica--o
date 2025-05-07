@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Cadastro | Karômetro</title>
   <style>
+    /* CSS permanece exatamente como você forneceu */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -16,7 +17,6 @@
       height: 100vh;
       position: relative;
     }
-
     .cadastro-container {
       background-color: #2b2b3d;
       color: #f1f1f1;
@@ -28,27 +28,18 @@
       max-height: 90vh;
       overflow-y: auto;
     }
-
     h2 {
       text-align: center;
       margin-bottom: 1.5rem;
       color: #76ffdc;
     }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
+    .form-group { margin-bottom: 1rem; }
     label {
       display: block;
       margin-bottom: 0.4rem;
       font-weight: 600;
     }
-
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"],
-    input[type="file"] {
+    input[type="text"], input[type="email"], input[type="tel"], input[type="file"] {
       width: 100%;
       padding: 0.6rem;
       border-radius: 8px;
@@ -57,7 +48,6 @@
       color: #fff;
       font-size: 1rem;
     }
-
     input[type="file"]::file-selector-button {
       background-color: #4CAF50;
       color: white;
@@ -67,13 +57,11 @@
       cursor: pointer;
       margin-right: 10px;
     }
-
     .foto-container {
       display: flex;
       flex-direction: column;
       gap: 0.7rem;
     }
-
     button {
       padding: 0.6rem 1rem;
       background-color: #4CAF50;
@@ -88,11 +76,9 @@
       justify-content: center;
       gap: 0.4rem;
     }
-
     button:hover {
       background-color: #1a1a2e;
     }
-
     .botao-link {
       display: inline-block;
       margin-top: 1rem;
@@ -102,25 +88,21 @@
       text-decoration: none;
       border-radius: 6px;
     }
-
     .botao-link:hover {
       background-color: #1a1a2e;
     }
-
     #preview {
       max-width: 100%;
       margin-top: 0.5rem;
       border-radius: 8px;
       border: 2px solid #333;
     }
-
     #cameraStream {
       width: 100%;
       border-radius: 8px;
       margin-top: 0.5rem;
       border: 2px solid #555;
     }
-
     .logout-button {
       position: fixed;
       top: 15px;
@@ -134,11 +116,9 @@
       cursor: pointer;
       z-index: 1000;
     }
-
     .logout-button:hover {
       background-color: #1a1a2e;
     }
-
     .centralizar {
       display: flex;
       justify-content: center;
@@ -147,7 +127,6 @@
   </style>
 </head>
 <body>
-  <!-- Botão de sair -->
   <button class="logout-button" id="logoutBtn">⎋ Sair</button>
 
   <div class="cadastro-container">
@@ -157,22 +136,18 @@
         <label for="nome">🧑 Nome:</label>
         <input type="text" id="nome" name="nome" required />
       </div>
-
       <div class="form-group">
         <label for="turma">🏫 Turma:</label>
         <input type="text" id="turma" name="turma" required />
       </div>
-
       <div class="form-group">
         <label for="email">✉️ E-mail:</label>
         <input type="email" id="email" name="email" required />
       </div>
-
       <div class="form-group">
         <label for="telefone">📞 Telefone:</label>
         <input type="tel" id="telefone" name="telefone" required />
       </div>
-
       <div class="form-group">
         <label>🖼️ Foto:</label>
         <div class="foto-container">
@@ -181,9 +156,8 @@
           <button type="button" id="capturarFoto" style="display:none;">📸 Capturar Foto</button>
         </div>
         <video id="cameraStream" autoplay playsinline style="display: none;"></video>
-        <img id="preview" src="#" alt="Pré-visualização da imagem" style="display: none;" />
+        <img id="preview" alt="Pré-visualização da imagem" style="display: none;" />
       </div>
-
       <div class="centralizar">
         <button type="submit">✅ Cadastrar</button>
       </div>
@@ -196,7 +170,6 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // ✅ VERIFICAÇÃO DE LOGIN
       const token = localStorage.getItem('token');
       if (!token) {
         alert("Você precisa estar logado para acessar esta página.");
@@ -210,12 +183,12 @@
       const capturarButton = document.getElementById('capturarFoto');
       const cameraStream = document.getElementById('cameraStream');
       const logoutBtn = document.getElementById('logoutBtn');
-      let stream;
-      let capturedBlob;
+      const form = document.getElementById('cadastroForm');
+      let stream = null;
+      let capturedBlob = null;
 
       cameraButton.addEventListener('click', async () => {
         if (stream) return;
-
         try {
           stream = await navigator.mediaDevices.getUserMedia({ video: true });
           cameraStream.srcObject = stream;
@@ -228,7 +201,6 @@
 
       capturarButton.addEventListener('click', () => {
         if (!stream) return;
-
         const canvas = document.createElement('canvas');
         canvas.width = cameraStream.videoWidth;
         canvas.height = cameraStream.videoHeight;
@@ -241,7 +213,6 @@
         }, 'image/jpeg');
       });
 
-      const form = document.getElementById('cadastroForm');
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -252,7 +223,7 @@
         formData.append('telefone', document.getElementById('telefone').value.trim());
 
         if (capturedBlob) {
-          formData.append('foto', capturedBlob, 'imagem.jpg');
+          formData.append('foto', capturedBlob, 'foto.jpg');
         } else if (fotoInput.files[0]) {
           formData.append('foto', fotoInput.files[0]);
         } else {
@@ -263,15 +234,24 @@
         try {
           const response = await fetch('http://localhost:3000/estudantes', {
             method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`
+            },
             body: formData
-            // headers: { Authorization: `Bearer ${token}` } // Descomente se o backend exigir token
           });
 
-          if (!response.ok) throw new Error('Erro ao cadastrar.');
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.message || 'Erro ao cadastrar.');
 
-          alert('Cadastro realizado!');
+          alert('Cadastro realizado com sucesso!');
           form.reset();
           preview.style.display = 'none';
+          cameraStream.style.display = 'none';
+          capturarButton.style.display = 'none';
+          if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+          }
         } catch (error) {
           alert(error.message);
         }

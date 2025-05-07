@@ -19,5 +19,5 @@ router.post('/logout', authController.logout);
 // GET /auth/check → retorna status de autenticação
 router.get('/check', authController.checkAuth);
 
-// 📤 Exporta o roteador para ser usado no app.js ou server.js
+// 📤 Exporta o roteador para ser usado no server.js
 module.exports = router;

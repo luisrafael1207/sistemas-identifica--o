@@ -230,6 +230,23 @@
       color: #bbb;
       margin-top: 20px;
     }
+
+    .notas-input {
+      width: 80px;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      background-color: #2c3e50;
+      color: white;
+    }
+
+    .notas-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
   </style>
 </head>
 <body>
@@ -255,6 +272,7 @@
           <video id="camera" autoplay></video>
         </div>
         <button onclick="reconhecerRosto()">Reconhecer</button>
+        <button onclick="desligarCamera()">Desligar Câmera</button>
       </div>
     </div>
 
@@ -264,6 +282,7 @@
           <th>Foto</th>
           <th>Nome</th>
           <th>Turma</th>
+          <th>Notas</th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -281,15 +300,25 @@
       <p><strong>ID:</strong> <span id="modal-id"></span></p>
       <p><strong>Nome:</strong> <span id="modal-nome"></span></p>
       <p><strong>Turma:</strong> <span id="modal-turma"></span></p>
+      <p><strong>Notas:</strong> <span id="modal-notas"></span></p>
       <p><strong>Foto:</strong><br><img id="modal-foto" src="" alt="Foto do estudante"></p>
+
+      <div class="notas-container">
+        <input type="number" id="input-nota" class="notas-input" placeholder="Nota" min="0" step="0.1">
+        <button onclick="atualizarNota()">Atualizar Nota</button>
+      </div>
+
       <button onclick="fecharModal()">Fechar</button>
     </div>
   </div>
 
   <script>
     const video = document.getElementById('camera');
+    let cameraStream = null;
+
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => {
+        cameraStream = stream;
         video.srcObject = stream;
       })
       .catch(error => {
@@ -326,10 +355,46 @@
       });
     }
 
+    function desligarCamera() {
+      if (cameraStream) {
+        const tracks = cameraStream.getTracks();
+        tracks.forEach(track => track.stop());
+        video.srcObject = null;
+        alert('Câmera desligada');
+      }
+    }
+
     function aplicarFiltroAutomatico(nome) {
       const filtroInput = document.getElementById('filtro');
       filtroInput.value = nome;
       carregarEstudantes();
+    }
+
+    function atualizarNota() {
+      const id = document.getElementById('modal-id').innerText;
+      const novaNota = document.getElementById('input-nota').value;
+
+      if (!novaNota) {
+        alert('Por favor, insira uma nota.');
+        return;
+      }
+
+      fetch(`http://localhost:3000/atualizar-nota/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nota: parseFloat(novaNota) })
+      })
+      .then(res => res.json())
+      .then(result => {
+        alert('Nota atualizada com sucesso!');
+        document.getElementById('modal-notas').innerText = result.nota;
+      })
+      .catch(error => {
+        console.error('Erro ao atualizar a nota:', error);
+        alert('Erro ao atualizar a nota.');
+      });
     }
   </script>
 

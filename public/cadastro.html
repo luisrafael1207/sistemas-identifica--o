@@ -163,6 +163,8 @@
       </div>
     </form>
 
+    <div id="editarContainer" style="text-align:center; margin-top: 20px;"></div>
+
     <div style="text-align: center; margin-top: 20px;">
       <a href="listar.html" class="botao-link">📄 Ver Lista</a>
     </div>
@@ -184,6 +186,7 @@
       const cameraStream = document.getElementById('cameraStream');
       const logoutBtn = document.getElementById('logoutBtn');
       const form = document.getElementById('cadastroForm');
+      const editarContainer = document.getElementById('editarContainer');
       let stream = null;
       let capturedBlob = null;
 
@@ -252,6 +255,15 @@
             stream.getTracks().forEach(track => track.stop());
             stream = null;
           }
+
+          // Exibir botão/link para editar
+          editarContainer.innerHTML = ''; // limpa se tiver algo
+          const editarLink = document.createElement('a');
+          editarLink.href = 'editar.html';
+          editarLink.textContent = '✏️ Editar Cadastro';
+          editarLink.className = 'botao-link';
+          editarContainer.appendChild(editarLink);
+
         } catch (error) {
           alert(error.message);
         }

@@ -1,122 +1,138 @@
 <!DOCTYPE html>
-<!-- Declaração do tipo de documento HTML -->
-<html lang="pt-br">
-<!-- Início do documento HTML com idioma definido como português do Brasil -->
-
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <!-- Define a codificação de caracteres para UTF-8 -->
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <!-- Faz com que o layout se ajuste corretamente em dispositivos móveis -->
-
-  <title>Editar Estudante</title>
-  <!-- Título exibido na aba do navegador -->
-
+  <title>Editar Estudante | Karômetro</title>
   <style>
-    /* Início dos estilos CSS */
+    /* CSS igual ao do cadastrar.html */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
-      margin: 0;
-      padding: 0;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 50px auto;
-      background-color: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .header {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1e1e2f;
+      color: #f1f1f1;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      margin-bottom: 30px;
+      height: 100vh;
+      position: relative;
     }
-
-    .btn-voltar {
+    .cadastro-container {
+      background-color: #2b2b3d;
+      color: #f1f1f1;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      width: 95%;
+      max-width: 650px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #76ffdc;
+    }
+    .form-group { margin-bottom: 1rem; }
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="file"] {
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background-color: #1e1e2f;
+      color: #fff;
+      font-size: 1rem;
+    }
+    input[type="file"]::file-selector-button {
       background-color: #4CAF50;
       color: white;
-      padding: 10px 15px;
-      text-decoration: none;
-      border-radius: 5px;
-      transition: background-color 0.3s ease;
-      font-weight: bold;
+      border: none;
+      padding: 0.4rem 0.7rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 10px;
     }
-
-    .btn-voltar:hover {
-      background-color: #777;
-    }
-
-    h1 {
-      color: #333;
-      margin: 0;
-    }
-
-    form {
+    .foto-container {
       display: flex;
       flex-direction: column;
+      gap: 0.7rem;
+      margin-bottom: 1rem;
     }
-
-    label {
-      margin-top: 10px;
-      margin-bottom: 5px;
-      color: #555;
-    }
-
-    input {
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      margin-bottom: 15px;
-    }
-
     button {
+      padding: 0.6rem 1rem;
       background-color: #4CAF50;
       color: white;
-      padding: 12px;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
+      font-size: 1rem;
       cursor: pointer;
-      font-size: 16px;
-      margin-top: 10px;
       transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
     }
-
     button:hover {
-      background-color: #5a6268;
+      background-color: #1a1a2e;
     }
-
-    .foto-atual {
-      margin-top: 20px;
+    .botao-link {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background-color: #3f51b5;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
       text-align: center;
     }
-
-    .foto-atual img {
-      max-width: 150px;
-      border-radius: 8px;
-      margin-top: 10px;
-      border: 2px solid #ddd;
+    .botao-link:hover {
+      background-color: #1a1a2e;
     }
-
+    #preview, #fotoAtual {
+      max-width: 100%;
+      margin-top: 0.5rem;
+      border-radius: 8px;
+      border: 2px solid #333;
+      display: block;
+    }
+    .logout-button {
+      position: fixed;
+      top: 15px;
+      right: 20px;
+      background-color: #f44336;
+      color: #fff;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      padding: 0.5rem 0.8rem;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    .logout-button:hover {
+      background-color: #1a1a2e;
+    }
+    .centralizar {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
     .mensagem {
       text-align: center;
-      margin-top: 20px;
+      margin-top: 1rem;
       font-weight: bold;
-      padding: 10px;
-      border-radius: 5px;
+      padding: 0.7rem;
+      border-radius: 6px;
     }
-
     .mensagem.sucesso {
       background-color: #d4edda;
       color: #155724;
       border: 1px solid #c3e6cb;
     }
-
     .mensagem.erro {
       background-color: #f8d7da;
       color: #721c24;
@@ -124,114 +140,144 @@
     }
   </style>
 </head>
-
 <body>
-  <!-- Corpo da página -->
-  <div class="container">
-    <!-- Container principal centralizado -->
+  <button class="logout-button" id="logoutBtn">⎋ Sair</button>
 
-    <div class="header">
-      <!-- Cabeçalho com título e botão de voltar -->
-      <h1>Editar Estudante</h1>
-      <a href="listar.html" class="btn-voltar">Voltar</a>
-    </div>
-
-    <!-- Formulário de edição -->
-    <form id="editar-form" enctype="multipart/form-data">
-      <label for="nome">Nome:</label>
-      <input type="text" id="nome" name="nome" required>
-
-      <label for="turma">Turma:</label>
-      <input type="text" id="turma" name="turma" required>
-
-      <label for="foto">Nova Foto:</label>
-      <input type="file" id="foto" name="foto" accept="image/*">
-
-      <div class="foto-atual" id="fotoAtualContainer">
-        <!-- Container da imagem atual do estudante -->
-        <span>Foto atual:</span><br />
-        <img id="fotoAtual" src="" alt="Foto do estudante">
+  <div class="cadastro-container">
+    <h2>✏️ Editar Estudante</h2>
+    <form id="editarForm" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="nome">🧑 Nome:</label>
+        <input type="text" id="nome" name="nome" required />
       </div>
-
-      <button type="submit">Atualizar</button>
+      <div class="form-group">
+        <label for="turma">🏫 Turma:</label>
+        <input type="text" id="turma" name="turma" required />
+      </div>
+      <div class="form-group foto-container">
+        <label>🖼️ Foto atual:</label>
+        <img id="fotoAtual" alt="Foto atual do estudante" />
+      </div>
+      <div class="form-group">
+        <label for="foto">📤 Nova Foto (opcional):</label>
+        <input type="file" id="foto" name="foto" accept="image/*" />
+      </div>
+      <div class="centralizar">
+        <button type="submit">💾 Atualizar</button>
+      </div>
     </form>
 
-    <!-- Área de mensagens -->
-    <div class="mensagem" id="mensagem"></div>
+    <div id="mensagem" class="mensagem" style="display:none;"></div>
+
+    <div style="text-align:center; margin-top: 20px;">
+      <a href="listar.html" class="botao-link">📄 Voltar para Lista</a>
+    </div>
   </div>
 
   <script>
-    // Obtém o ID da URL
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
-
-    // Referências aos inputs e elementos de exibição
-    const nomeInput = document.getElementById('nome');
-    const turmaInput = document.getElementById('turma');
-    const fotoAtual = document.getElementById('fotoAtual');
-    const mensagem = document.getElementById('mensagem');
-
-    // Verifica se o ID está presente
-    if (!id) {
-      mensagem.textContent = "ID não fornecido.";
-      mensagem.className = "mensagem erro";
-      return;
-    }
-
-    // Busca os dados do estudante para preencher o formulário
-    fetch(`http://localhost:3000/estudantes/${id}`)
-      .then(res => res.json())
-      .then(estudante => {
-        // Preenche os campos com os dados recebidos
-        nomeInput.value = estudante.nome;
-        turmaInput.value = estudante.turma;
-        if (estudante.foto) {
-          // Exibe a imagem atual
-          fotoAtual.src = `http://localhost:3000/${estudante.foto}`;
-        } else {
-          // Oculta o container da imagem se não houver foto
-          document.getElementById('fotoAtualContainer').style.display = 'none';
-        }
-      })
-      .catch(error => {
-        // Exibe erro caso ocorra falha na busca
-        console.error('Erro ao buscar estudante:', error);
-        mensagem.textContent = 'Erro ao buscar dados do estudante.';
-        mensagem.className = "mensagem erro";
-      });
-
-    // Evento de envio do formulário
-    document.getElementById('editar-form').addEventListener('submit', function (e) {
-      e.preventDefault();
-
-      // Cria objeto FormData com os dados do formulário
-      const formData = new FormData();
-      formData.append('nome', nomeInput.value);
-      formData.append('turma', turmaInput.value);
-
-      // Adiciona a nova foto, se selecionada
-      const novaFoto = document.getElementById('foto').files[0];
-      if (novaFoto) {
-        formData.append('foto', novaFoto);
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert("Você precisa estar logado para acessar esta página.");
+        window.location.href = "login.html";
+        return;
       }
 
-      // Envia a requisição PUT para atualizar o estudante
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+
+      const nomeInput = document.getElementById('nome');
+      const turmaInput = document.getElementById('turma');
+      const fotoAtualImg = document.getElementById('fotoAtual');
+      const fotoInput = document.getElementById('foto');
+      const mensagemDiv = document.getElementById('mensagem');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const form = document.getElementById('editarForm');
+
+      if (!id) {
+        mensagemDiv.style.display = 'block';
+        mensagemDiv.textContent = "ID do estudante não fornecido.";
+        mensagemDiv.className = "mensagem erro";
+        return;
+      }
+
+      // Carrega dados do estudante para preencher o formulário
       fetch(`http://localhost:3000/estudantes/${id}`, {
-        method: 'PUT',
-        body: formData
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       })
-        .then(res => res.json())
-        .then(data => {
-          // Mostra mensagem de sucesso
-          mensagem.textContent = data.message || 'Estudante atualizado com sucesso!';
-          mensagem.className = "mensagem sucesso";
-        })
-        .catch(error => {
-          // Mostra mensagem de erro
-          console.error('Erro ao atualizar estudante:', error);
-          mensagem.textContent = 'Erro ao atualizar. Tente novamente.';
-          mensagem.className = "mensagem erro";
-        });
+      .then(res => {
+        if (!res.ok) throw new Error("Estudante não encontrado.");
+        return res.json();
+      })
+      .then(estudante => {
+        nomeInput.value = estudante.nome || '';
+        turmaInput.value = estudante.turma || '';
+
+        if (estudante.foto) {
+          fotoAtualImg.src = `http://localhost:3000/${estudante.foto}`;
+          fotoAtualImg.style.display = 'block';
+        } else {
+          fotoAtualImg.style.display = 'none';
+        }
+      })
+      .catch(err => {
+        mensagemDiv.style.display = 'block';
+        mensagemDiv.textContent = 'Erro ao carregar dados do estudante.';
+        mensagemDiv.className = 'mensagem erro';
+        console.error(err);
+      });
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        mensagemDiv.style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('nome', nomeInput.value.trim());
+        formData.append('turma', turmaInput.value.trim());
+
+        if (fotoInput.files[0]) {
+          formData.append('foto', fotoInput.files[0]);
+        }
+
+        try {
+          const response = await fetch(`http://localhost:3000/estudantes/${id}`, {
+            method: 'PUT',
+            headers: {
+              Authorization: `Bearer ${token}`
+            },
+            body: formData
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) throw new Error(data.message || 'Erro ao atualizar estudante.');
+
+          mensagemDiv.style.display = 'block';
+          mensagemDiv.textContent = data.message || 'Estudante atualizado com sucesso!';
+          mensagemDiv.className = 'mensagem sucesso';
+
+          // Atualiza a foto atual com a nova, se enviada
+          if (data.estudante && data.estudante.foto) {
+            fotoAtualImg.src = `http://localhost:3000/${data.estudante.foto}`;
+            fotoAtualImg.style.display = 'block';
+          }
+
+        } catch (error) {
+          mensagemDiv.style.display = 'block';
+          mensagemDiv.textContent = error.message || 'Erro ao atualizar estudante.';
+          mensagemDiv.className = 'mensagem erro';
+          console.error(error);
+        }
+      });
+
+      logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        sessionStorage.setItem('fromLogout', 'true');
+        window.location.href = 'login.html';
+      });
     });
   </script>
 </body>

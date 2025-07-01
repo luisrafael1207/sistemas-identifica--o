@@ -3,157 +3,168 @@ const cors = require('cors'); // Middleware para habilitar CORS
 const multer = require('multer'); // Middleware para upload de arquivos
 const mysql = require('mysql2'); // Cliente MySQL para Node.js
 const fs = require('fs'); // Módulo para manipulação de arquivos
-const session = require('express-session'); // Middleware para gerenciamento de sessões
+const session = require('express-session'); // Middleware para sessões
 const authRoutes = require('./routes/auth'); // Importa as rotas de autenticação
 
 const app = express(); // Cria a aplicação Express
 
-// Configurações básicas
+// Configuração do CORS (permite acesso externo)
 app.use(cors({
-    origin: '*',
-    credentials: true
-  }));
-app.use(express.json()); // Habilita o uso de JSON no corpo das requisições
-app.use(express.urlencoded({ extended: true })); // Habilita dados codificados em URL (formulários)
-
-// Sessão
-app.use(session({ // Configura sessão (cookie + memória local)
-    secret: 'segredo_super_secreto', // Segredo para assinar sessões
-    resave: false, // Evita salvar sessão sem alterações
-    saveUninitialized: false, // Evita salvar sessões vazias
-    cookie: { secure: false } // 'secure' false pois não usamos HTTPS localmente
+    origin: '*', // Aceita requisições de qualquer origem
+    credentials: true // Permite envio de cookies/sessão
 }));
 
-// Servir arquivos estáticos
-app.use(express.static('public')); // Pasta pública com arquivos estáticos
-app.use('/uploads', express.static('uploads')); // Disponibiliza imagens/fotos na rota /uploads
+app.use(express.json()); // Permite ler JSON no corpo da requisição
+app.use(express.urlencoded({ extended: true })); // Permite dados de formulário
 
-// Conexão com o banco de dados
-const db = mysql.createConnection({ // Cria a conexão com o MySQL
-    host: 'localhost',
-    user: 'root',
-    password: '12074811',
-    database: 'identificacao_estudantes'
+// Configuração da sessão (armazenamento temporário por usuário)
+app.use(session({
+    secret: 'segredo_super_secreto', // Chave de segurança
+    resave: false, // Não salva sessão se nada mudou
+    saveUninitialized: false, // Não cria sessão vazia
+    cookie: { secure: false } // Sem HTTPS (em localhost)
+}));
+
+// Arquivos públicos (HTML, JS, CSS) e imagens de uploads
+app.use(express.static('public')); // HTML e JS do frontend
+app.use('/uploads', express.static('uploads')); // Acesso às fotos dos estudantes
+
+// Conexão com o banco de dados MySQL
+const db = mysql.createConnection({
+    host: 'localhost', // Host local
+    user: 'root', // Usuário do MySQL
+    password: '12074811', // Senha do MySQL
+    database: 'identificacao_estudantes' // Nome do banco
 });
 
-db.connect((err) => { // Tenta conectar ao banco
+// Verifica se a conexão foi bem-sucedida
+db.connect((err) => {
     if (err) {
-        console.error('Erro na conexão com o banco de dados:', err); // Loga erro
-        process.exit(1); // Encerra o processo se falhar
+        console.error('Erro na conexão com o banco de dados:', err); // Erro de conexão
+        process.exit(1); // Encerra o servidor
     }
     console.log('Conexão com o banco de dados estabelecida'); // Sucesso
 });
 
-global.db = db; // Torna a conexão acessível globalmente (não recomendado em apps grandes)
+// Torna a conexão acessível globalmente (não recomendado para sistemas grandes)
+global.db = db;
 
-// Uploads
-const upload = multer({ dest: 'uploads/' }); // Define pasta de destino para os uploads
+// Configuração do multer (armazenamento local de fotos)
+const upload = multer({ dest: 'uploads/' }); // Define a pasta onde fotos serão salvas
 
-// Autenticação
-app.use('/auth', authRoutes); // Usa as rotas de autenticação (ex: login)
+// Usa as rotas de autenticação (/auth/login, /auth/logout etc.)
+app.use('/auth', authRoutes);
 
-// Listar estudantes
+// =================== ROTAS DO CRUD ====================
+
+// Listar estudantes com filtro (por nome ou turma)
 app.get('/estudantes', (req, res) => {
-    const filtro = req.query.filtro || ''; // Recebe o filtro da URL
-    const query = 'SELECT * FROM estudantes WHERE nome LIKE ? OR turma LIKE ?'; // SQL com filtro
-    const params = [`%${filtro}%`, `%${filtro}%`]; // Parametriza a busca
+    const filtro = req.query.filtro || ''; // Filtro opcional na URL
+    const query = 'SELECT * FROM estudantes WHERE nome LIKE ? OR turma LIKE ?';
+    const params = [`%${filtro}%`, `%${filtro}%`];
 
-    db.query(query, params, (err, results) => { // Executa a query
+    db.query(query, params, (err, results) => {
         if (err) {
-            console.error('Erro ao consultar estudantes:', err); // Loga erro
-            return res.status(500).json({ message: 'Erro ao listar estudantes' }); // Retorna erro
+            console.error('Erro ao consultar estudantes:', err);
+            return res.status(500).json({ message: 'Erro ao listar estudantes' });
         }
         res.json(results); // Retorna os estudantes encontrados
     });
 });
 
-// Detalhar estudante
+// Buscar estudante por ID
 app.get('/estudantes/:id', (req, res) => {
-    const { id } = req.params; // Pega o ID da URL
-    const query = 'SELECT * FROM estudantes WHERE id = ?'; // SQL para buscar pelo ID
+    const { id } = req.params;
+    const query = 'SELECT * FROM estudantes WHERE id = ?';
 
-    db.query(query, [id], (err, result) => { // Executa a query
+    db.query(query, [id], (err, result) => {
         if (err) {
-            console.error('Erro ao buscar detalhes do estudante:', err); // Loga erro
-            return res.status(500).json({ message: 'Erro ao buscar detalhes' }); // Retorna erro
+            console.error('Erro ao buscar detalhes do estudante:', err);
+            return res.status(500).json({ message: 'Erro ao buscar detalhes' });
         }
         if (result.length > 0) {
             res.json(result[0]); // Retorna o estudante
         } else {
-            res.status(404).json({ message: 'Estudante não encontrado' }); // Não achou
+            res.status(404).json({ message: 'Estudante não encontrado' });
         }
     });
 });
 
-// Cadastrar estudante (corrigido)
+// Cadastrar novo estudante
 app.post('/estudantes', upload.single('foto'), (req, res) => {
-    const { nome, turma, email, telefone } = req.body; // Pega dados do corpo
-    const foto = req.file ? req.file.filename : null; // Pega o nome do arquivo se houver
+    const { nome, turma, email, telefone } = req.body;
+    const foto = req.file ? req.file.filename : null; // Foto enviada
 
+    // Validação: todos os campos obrigatórios
     if (!nome || !turma || !email || !telefone || !foto) {
-        return res.status(400).json({ message: 'Todos os campos são obrigatórios.' }); // Validação
+        return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
     }
 
-    const query = 'INSERT INTO estudantes (nome, turma, email, telefone, foto) VALUES (?, ?, ?, ?, ?)'; // SQL insert
+    const query = 'INSERT INTO estudantes (nome, turma, email, telefone, foto) VALUES (?, ?, ?, ?, ?)';
     db.query(query, [nome, turma, email, telefone, foto], (err, result) => {
         if (err) {
-            console.error('Erro no banco:', err); // Loga erro
-            return res.status(500).json({ message: 'Erro ao cadastrar estudante' }); // Retorna erro
+            console.error('Erro no banco:', err);
+            return res.status(500).json({ message: 'Erro ao cadastrar estudante' });
         }
-        res.status(201).json({ message: 'Estudante cadastrado com sucesso!', id: result.insertId }); // Sucesso
+        res.status(201).json({ message: 'Estudante cadastrado com sucesso!', id: result.insertId });
     });
 });
 
-// Editar estudante (corrigido)
+// ✅ Editar estudante (aceita atualização parcial)
 app.put('/estudantes/:id', upload.single('foto'), (req, res) => {
-    const { id } = req.params; // ID do estudante
-    const { nome, turma, email, telefone } = req.body; // Dados atualizados
-    const foto = req.file ? req.file.filename : null; // Nova foto (opcional)
+    const { id } = req.params;
+    const dados = req.body; // Dados enviados no corpo
 
-    let query = 'UPDATE estudantes SET nome = ?, turma = ?, email = ?, telefone = ?'; // Parte inicial do update
-    const params = [nome, turma, email, telefone]; // Parâmetros iniciais
-
-    if (foto) {
-        query += ', foto = ?'; // Se tiver nova foto, inclui no update
-        params.push(foto); // Adiciona à lista de parâmetros
+    if (req.file) {
+        dados.foto = req.file.filename; // Se houver nova foto, adiciona
     }
 
-    query += ' WHERE id = ?'; // Finaliza o update com a condição WHERE
-    params.push(id); // Adiciona o ID ao final da lista de parâmetros
+    const campos = Object.keys(dados); // ['nome', 'turma', ...]
+    const valores = Object.values(dados); // ['João', '8A', ...]
 
-    db.query(query, params, (err, result) => { // Executa o update
+    if (campos.length === 0) {
+        return res.status(400).json({ message: 'Nenhum campo enviado para atualização.' });
+    }
+
+    // Monta a parte SET do SQL dinamicamente
+    const setClause = campos.map(campo => `${campo} = ?`).join(', ');
+    const query = `UPDATE estudantes SET ${setClause} WHERE id = ?`;
+    valores.push(id); // ID vai no final da lista
+
+    // Executa o update
+    db.query(query, valores, (err, result) => {
         if (err) {
-            console.error('Erro ao atualizar estudante:', err); // Loga erro
-            return res.status(500).json({ message: 'Erro ao atualizar estudante' }); // Retorna erro
+            console.error('Erro ao atualizar estudante:', err);
+            return res.status(500).json({ message: 'Erro ao atualizar estudante' });
         }
         if (result.affectedRows > 0) {
-            res.json({ message: 'Estudante atualizado com sucesso!' }); // Sucesso
+            res.json({ message: 'Estudante atualizado com sucesso!' });
         } else {
-            res.status(404).json({ message: 'Estudante não encontrado' }); // ID não existe
+            res.status(404).json({ message: 'Estudante não encontrado' });
         }
     });
 });
 
-// Deletar estudante
+// Deletar estudante por ID
 app.delete('/estudantes/:id', (req, res) => {
-    const { id } = req.params; // ID do estudante
-    const query = 'DELETE FROM estudantes WHERE id = ?'; // SQL delete
+    const { id } = req.params;
+    const query = 'DELETE FROM estudantes WHERE id = ?';
 
-    db.query(query, [id], (err, result) => { // Executa o delete
+    db.query(query, [id], (err, result) => {
         if (err) {
-            console.error('Erro ao deletar estudante:', err); // Loga erro
-            return res.status(500).json({ message: 'Erro ao deletar estudante' }); // Retorna erro
+            console.error('Erro ao deletar estudante:', err);
+            return res.status(500).json({ message: 'Erro ao deletar estudante' });
         }
         if (result.affectedRows > 0) {
-            res.json({ message: 'Estudante deletado com sucesso!' }); // Sucesso
+            res.json({ message: 'Estudante deletado com sucesso!' });
         } else {
-            res.status(404).json({ message: 'Estudante não encontrado' }); // ID não existe
+            res.status(404).json({ message: 'Estudante não encontrado' });
         }
     });
 });
 
-// Iniciar servidor
-const PORT = process.env.PORT || 3000; // Usa a porta do .env ou 3000 como padrão
+// Inicia o servidor na porta 3000 (ou a porta do ambiente)
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`✅ Servidor rodando na porta ${PORT}`); // Informa que o servidor está rodando
+    console.log(`✅ Servidor rodando na porta ${PORT}`);
 });

@@ -304,8 +304,8 @@
       <p><strong>Foto:</strong><br><img id="modal-foto" src="" alt="Foto do estudante"></p>
 
       <div class="notas-container">
-        <input type="number" id="input-nota" class="notas-input" placeholder="Nota" min="0" step="0.1">
-        <button onclick="atualizarNota()">Atualizar Nota</button>
+        <input type="number" id="modal-nota" class="notas-input" placeholder="Nota" min="0" step="0.1">
+        <button onclick="salvarNota()">Atualizar Nota</button>
       </div>
 
       <button onclick="fecharModal()">Fechar</button>
@@ -368,33 +368,6 @@
       const filtroInput = document.getElementById('filtro');
       filtroInput.value = nome;
       carregarEstudantes();
-    }
-
-    function atualizarNota() {
-      const id = document.getElementById('modal-id').innerText;
-      const novaNota = document.getElementById('input-nota').value;
-
-      if (!novaNota) {
-        alert('Por favor, insira uma nota.');
-        return;
-      }
-
-      fetch(`http://localhost:3000/atualizar-nota/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ nota: parseFloat(novaNota) })
-      })
-      .then(res => res.json())
-      .then(result => {
-        alert('Nota atualizada com sucesso!');
-        document.getElementById('modal-notas').innerText = result.nota;
-      })
-      .catch(error => {
-        console.error('Erro ao atualizar a nota:', error);
-        alert('Erro ao atualizar a nota.');
-      });
     }
   </script>
 

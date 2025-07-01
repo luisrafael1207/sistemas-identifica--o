@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - wazuh-net
+
+  wazuh.manager:
+    image: wazuh/wazuh-manager:4.7.3
+    container_name: wazuh.manager
+    ports:
+      - "1514:1514/udp"
+      - "1515:1515"
+      - "55000:55000"
+    networks:
+      - wazuh-net
+    restart: always
+
+  filebeat:
+    image: wazuh/filebeat:8.13.4
+    container_name: filebeat
+    depends_on:
+      - elasticsearch
+      - wazuh.manager
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+    networks:
+      - wazuh-net
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - wazuh-net
+
+networks:
+  wazuh-net:
+
+volumes:
+  esdata:

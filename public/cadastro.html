@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Cadastro | Karômetro</title>
   <style>
-    /* CSS permanece exatamente como você forneceu */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -103,6 +102,16 @@
       margin-top: 0.5rem;
       border: 2px solid #555;
     }
+    .logo-ifc {
+      position: fixed;
+      top: 15px;
+      left: 20px;
+      z-index: 1001;
+    }
+    .logo-ifc img {
+      height: 120px;
+      object-fit: contain;
+    }
     .logout-button {
       position: fixed;
       top: 15px;
@@ -127,6 +136,11 @@
   </style>
 </head>
 <body>
+  <!-- LOGO DO IFC NO TOPO ESQUERDO -->
+  <div class="logo-ifc">
+    <img src="Logo_IFC_vertical.png" alt="Logo do IFC" />
+  </div>
+
   <button class="logout-button" id="logoutBtn">⎋ Sair</button>
 
   <div class="cadastro-container">
@@ -256,8 +270,7 @@
             stream = null;
           }
 
-          // Exibir botão/link para editar
-          editarContainer.innerHTML = ''; // limpa se tiver algo
+          editarContainer.innerHTML = '';
           const editarLink = document.createElement('a');
           editarLink.href = 'editar.html';
           editarLink.textContent = '✏️ Editar Cadastro';

@@ -1,28 +1,27 @@
-require('dotenv').config(); // Carrega variáveis de ambiente do arquivo .env
-const mysql = require('mysql2'); // Importa a biblioteca mysql2 para conexão com o banco de dados
+require('dotenv').config();
+const mysql = require('mysql2/promise');
 
-
-// 🔄 Criando um pool de conexões (melhor performance)
-const db = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    waitForConnections: true, // Aguarda conexões livres no pool
-    connectionLimit: 10, // Limite de conexões simultâneas
-    queueLimit: 0 // Sem limite na fila de espera
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'identificacao_estudantes',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
 
+async function testarConexao() {
+  try {
+    const conn = await pool.getConnection();
+    await conn.ping();
+    conn.release();
+    console.log('✅ Banco de dados conectado com sucesso!');
+  } catch (err) {
+    console.error('❌ Erro ao conectar ao banco de dados:', err.message);
+    throw err;
+  }
+}
 
-// 📌 Testa a conexão
-db.getConnection((err, connection) => {
-    if (err) {
-        console.error('❌ Erro ao conectar ao banco de dados:', err.message);
-    } else {
-        console.log('✅ Banco de dados conectado com sucesso!');
-        connection.release(); // Libera a conexão após o teste
-    }
-});
-
-
-module.exports = db;
+module.exports = pool; // exporta o pool direto para usar .execute(), .query(), etc
+module.exports.testarConexao = testarConexao;

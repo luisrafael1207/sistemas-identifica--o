@@ -1,273 +1,209 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login | Karômetro</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #2c3e50, #4CAF50);
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .login-container {
-      background-color: #ffffff;
-      color: #333;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-      width: 100%;
-      max-width: 400px;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 1.5rem;
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #2c3e50;
-    }
-
-    .logo i {
-      margin-right: 0.5rem;
-      color: #4CAF50;
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 1.5rem;
-      font-size: 1.2rem;
-      color: #2c3e50;
-    }
-
-    .form-group {
-      margin-bottom: 1.2rem;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 0.3rem;
-      font-weight: 600;
-      color: #2c3e50;
-    }
-
-    .input-field {
-      display: flex;
-      align-items: center;
-      background: #f2f2f2;
-      padding: 0.5rem 0.75rem;
-      border-radius: 6px;
-    }
-
-    .input-field i {
-      margin-right: 0.5rem;
-      color: #666;
-    }
-
-    .input-field input {
-      border: none;
-      outline: none;
-      background: transparent;
-      flex: 1;
-      font-size: 1rem;
-      color: #333;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 0.75rem;
-      background-color: #4CAF50;
-      border: none;
-      color: white;
-      font-size: 1rem;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    .btn:hover {
-      background-color: #333;
-    }
-
-    .footer-links {
-      margin-top: 1rem;
-      text-align: center;
-    }
-
-    .footer-links a {
-      color: #333;
-      text-decoration: none;
-      font-size: 0.95rem;
-    }
-
-    .footer-links a:hover {
-      text-decoration: underline;
-    }
-
-    .error-message {
-      color: #e74c3c;
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-    }
-
-    .spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #3498db;
-      border-radius: 50%;
-      width: 14px;
-      height: 14px;
-      animation: spin 1s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-      margin-left: 8px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | Karômetro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #2c3e50, #4CAF50);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+        }
+        /* Logo do IFC fixa no topo esquerdo */
+        .logo-ifc {
+            position: fixed;
+            top: 15px;
+            left: 20px;
+            z-index: 1000;
+        }
+        .logo-ifc img {
+            height: 100px;
+            object-fit: contain;
+        }
+        .login-container {
+            background-color: #ffffff;
+            color: #333;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            z-index: 10;
+            position: relative;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .logo i {
+            margin-right: 0.5rem;
+            color: #4CAF50;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .input-field {
+            display: flex;
+            align-items: center;
+            background: #f2f2f2;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+        }
+        .input-field i {
+            margin-right: 0.5rem;
+            color: #666;
+        }
+        .input-field input {
+            border: none;
+            outline: none;
+            background: transparent;
+            flex: 1;
+            font-size: 1rem;
+            color: #333;
+        }
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #333;
+        }
+        .footer-links {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        /* Botão com estilo parecido com link */
+        .btn-link {
+            background: none;
+            border: none;
+            color: #4CAF50;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.95rem;
+            padding: 0;
+            font-family: inherit;
+        }
+        .btn-link:hover {
+            color: #388E3C;
+        }
+        .error-message {
+            color: #e74c3c;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-  <div class="login-container">
-    <div class="logo">
-      <i class="fas fa-graduation-cap"></i>
-      <span>Karômetro IFC</span>
+    <!-- Logo fixa IFC -->
+    <div class="logo-ifc">
+        <img src="Logo_IFC_vertical.png" alt="Logo do IFC" />
     </div>
 
-    <h2>Faça login na sua conta</h2>
-
-    <form id="loginForm" novalidate autocomplete="off">
-      <div class="form-group">
-        <label for="email">E-mail</label>
-        <div class="input-field">
-          <i class="fas fa-envelope"></i>
-          <input type="email" id="email" name="email" placeholder="seu@email.com" required autocomplete="username">
+    <div class="login-container">
+        <div class="logo">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Karômetro IFC</span>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="senha">Senha</label>
-        <div class="input-field">
-          <i class="fas fa-lock"></i>
-          <input type="password" id="senha" name="senha" placeholder="Sua senha" required minlength="6" autocomplete="current-password">
-        </div>
-        <div id="mensagemErro" class="error-message" aria-live="polite"></div>
-      </div>
+        <h2>Faça login na sua conta</h2>
 
-      <button type="submit" class="btn btn-primary" id="loginButton">
-        <span id="buttonText">Entrar</span>
-        <span id="buttonSpinner" class="spinner" style="display: none;"></span>
-      </button>
+        <form id="loginForm" novalidate autocomplete="off">
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <div class="input-field">
+                    <i class="fas fa-envelope"></i>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="seu@email.com"
+                        required
+                        autocomplete="username"
+                    />
+                </div>
+            </div>
 
-      <div class="footer-links">
-        <a href="#" id="forgotPassword">Esqueceu sua senha?</a>
-      </div>
-    </form>
-  </div>
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <div class="input-field">
+                    <i class="fas fa-lock"></i>
+                    <input
+                        type="password"
+                        id="senha"
+                        name="senha"
+                        placeholder="Sua senha"
+                        required
+                        minlength="6"
+                        autocomplete="current-password"
+                    />
+                </div>
+                <div id="mensagemErro" class="error-message" aria-live="polite"></div>
+            </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const loginForm = document.getElementById('loginForm');
-      const emailInput = document.getElementById('email');
-      const senhaInput = document.getElementById('senha');
-      const mensagemErro = document.getElementById('mensagemErro');
-      const loginButton = document.getElementById('loginButton');
-      const buttonText = document.getElementById('buttonText');
-      const buttonSpinner = document.getElementById('buttonSpinner');
-      const forgotPasswordLink = document.getElementById('forgotPassword');
+            <button type="submit" class="btn btn-primary" id="loginButton">
+                <span id="buttonText">Entrar</span>
+                <span id="buttonSpinner" class="spinner" style="display: none;"></span>
+            </button>
 
-      const fromLogout = sessionStorage.getItem('fromLogout');
-      if (localStorage.getItem('token') && !fromLogout) {
-        window.location.href = 'listar.html';
-      }
-      sessionStorage.removeItem('fromLogout');
+            <div class="footer-links">
+                <button type="button" id="forgotPasswordBtn" class="btn-link">Esqueceu sua senha?</button>
+            </div>
+        </form>
+    </div>
 
-      emailInput.addEventListener('input', validateEmail);
-      senhaInput.addEventListener('input', validatePassword);
-
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        if (!validateEmail() || !validatePassword()) return;
-
-        buttonText.textContent = 'Autenticando...';
-        buttonSpinner.style.display = 'inline-block';
-        loginButton.disabled = true;
-        mensagemErro.textContent = '';
-
-        try {
-          const response = await fetch('/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              email: emailInput.value.trim(),
-              senha: senhaInput.value
-            })
-          });
-
-          const data = await response.json();
-
-          if (!response.ok) throw new Error(data.message || 'Erro ao fazer login');
-
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user || {}));
-          buttonText.textContent = 'Login realizado!';
-          setTimeout(() => window.location.href = 'listar.html', 500);
-        } catch (error) {
-          const isOffline = error.message.includes('Failed to fetch') || error.message.includes('NetworkError');
-          mensagemErro.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${isOffline ? 'Servidor indisponível. Verifique sua conexão.' : error.message}`;
-          senhaInput.value = '';
-          senhaInput.focus();
-        } finally {
-          buttonText.textContent = 'Entrar';
-          buttonSpinner.style.display = 'none';
-          loginButton.disabled = false;
-        }
-      });
-
-      function validateEmail() {
-        const email = emailInput.value.trim();
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-          emailInput.setCustomValidity('Por favor, insira um e-mail válido');
-          return false;
-        }
-        emailInput.setCustomValidity('');
-        return true;
-      }
-
-      function validatePassword() {
-        const senha = senhaInput.value;
-        if (senha.length < 6) {
-          senhaInput.setCustomValidity('A senha deve ter pelo menos 6 caracteres');
-          return false;
-        }
-        senhaInput.setCustomValidity('');
-        return true;
-      }
-
-      // Redirecionar para página de recuperação de senha
-      forgotPasswordLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.location.href = 'recuperar.html';
-      });
-    });
-  </script>
+    <!-- Link para o JavaScript externo -->
+    <script src="login.js"></script>
 </body>
 </html>

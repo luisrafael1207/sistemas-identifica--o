@@ -4,106 +4,87 @@ document.addEventListener('DOMContentLoaded', () => {
     const senhaInput = document.getElementById('senha');
     const mensagemErro = document.getElementById('mensagemErro');
     const loginButton = document.getElementById('loginButton');
+    const buttonText = document.getElementById('buttonText');
+    const buttonSpinner = document.getElementById('buttonSpinner');
+    const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
 
-    // Verifica se já está logado e redireciona
-    const fromLogout = sessionStorage.getItem('fromLogout');
+    const setLoading = (loading) => {
+        loginButton.disabled = loading;
+        buttonText.textContent = loading ? 'Entrando...' : 'Entrar';
+        buttonSpinner.style.display = loading ? 'inline-block' : 'none';
+        loginButton.setAttribute('aria-busy', loading);
+    };
 
-    if (isTokenValid() && !fromLogout) {
-        // Usuário já logado, redireciona para a tela principal
+    [emailInput, senhaInput].forEach(input => {
+        input.addEventListener('input', () => {
+            mensagemErro.textContent = '';
+            input.style.borderColor = '';
+        });
+    });
+
+    emailInput.focus();
+
+    // Redireciona se já estiver logado
+    if (localStorage.getItem('token')) {
         window.location.href = 'listar.html';
-        return;
     }
 
-    // Limpa o marcador de logout
-    sessionStorage.removeItem('fromLogout');
-
-    // Evento de envio do formulário de login
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const email = emailInput.value.trim();
+        const senha = senhaInput.value.trim();
 
-        // Validação simples de campos
-        if (!emailInput.value || !senhaInput.value) {
+        if (!email || !senha) {
             mensagemErro.textContent = 'Preencha todos os campos.';
+            if (!email) emailInput.style.borderColor = 'red';
+            if (!senha) senhaInput.style.borderColor = 'red';
             return;
         }
 
-        // Mostra carregamento
-        loginButton.disabled = true;
-        loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+        setLoading(true);
 
         try {
             const response = await fetch('http://localhost:3000/auth/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: emailInput.value,
-                    senha: senhaInput.value
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, senha })
             });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Erro no login');
 
-            const text = await response.text();
-            let data;
-
-            try {
-                data = JSON.parse(text);
-            } catch (jsonError) {
-                console.error('Resposta inesperada do servidor:', text);
-                throw new Error('Erro inesperado no servidor');
-            }
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Erro no login');
-            }
-
-            // Armazena token e dados do usuário
+            // Salva token único
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
 
-            // Armazena a expiração do token
-            setTokenExpiration(data.token);
-
-            // Redireciona para a rota definida ou página padrão
             window.location.href = data.redirectTo || 'listar.html';
 
         } catch (error) {
-            console.error('Erro:', error);
             mensagemErro.textContent = error.message || 'Erro desconhecido';
-            senhaInput.value = ''; // limpa o campo senha
+            senhaInput.value = '';
+            senhaInput.style.borderColor = 'red';
         } finally {
-            loginButton.disabled = false;
-            loginButton.textContent = 'Entrar';
+            setLoading(false);
         }
+    });
+
+    forgotPasswordBtn.addEventListener('click', () => {
+        window.location.href = 'recuperar.html';
     });
 });
 
-// Função para verificar se o token é válido
-function isTokenValid() {
+// Função auxiliar para requisições autenticadas
+async function fetchAuth(url, options = {}) {
     const token = localStorage.getItem('token');
-    if (!token) return false;
+    const headers = options.headers || {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    options.headers = headers;
 
-    const expiration = localStorage.getItem('tokenExpiration');
-    if (!expiration) return false;
-
-    const now = Date.now();
-    return now < expiration;
-}
-
-// Função para armazenar a expiração do token (em 1 hora, por exemplo)
-function setTokenExpiration(token) {
-    const decodedToken = decodeJWT(token);
-    const expirationTime = decodedToken.exp * 1000; // Expiração do token em milissegundos
-    localStorage.setItem('tokenExpiration', expirationTime);
-}
-
-// Função para decodificar o JWT (json web token)
-function decodeJWT(token) {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-
-    return JSON.parse(jsonPayload);
+    const response = await fetch(url, options);
+    if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = 'login.html';
+        throw new Error('Não autenticado');
+    }
+    return response;
 }

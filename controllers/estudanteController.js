@@ -1,178 +1,237 @@
+// controllers/estudanteController.js
 const db = require('../config/db');
-const fs = require('fs').promises;
+const fs = require('fs');
 const path = require('path');
-const { validationResult } = require('express-validator');
-const createError = require('http-errors');
+const logger = require('../utils/logger');
+const { softSkillOptions } = require('../middleware/validationMiddleware');
 
-class EstudanteController {
-  static async _removerArquivo(filename) {
-    try {
-      const filePath = path.join(__dirname, '../public/uploads', filename);
-      await fs.unlink(filePath);
-    } catch (err) {
-      console.error('Erro ao remover arquivo:', err);
-    }
-  }
+// --- LISTAR ESTUDANTES ---
+async function listar(req, res) {
+  try {
+    logger.info('Iniciando listagem de estudantes', { user: req.user?.id || 'anônimo' });
 
-  static async cadastrar(req, res, next) {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        if (req.file) await this._removerArquivo(req.file.filename);
-        return res.status(400).json({ status: 'error', errors: errors.array() });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const filtro = req.query.filtro ? `%${req.query.filtro.toLowerCase()}%` : null;
+
+    let sql = 'SELECT * FROM estudantes';
+    let countSql = 'SELECT COUNT(*) as total FROM estudantes';
+    const params = [];
+    const countParams = [];
+
+    if (filtro) {
+      const where = `
+        WHERE LOWER(nome) LIKE ? 
+          OR LOWER(turma) LIKE ? 
+          OR LOWER(COALESCE(softSkill,"")) LIKE ?
+      `;
+      sql += where;
+      countSql += where;
+      for (let i = 0; i < 3; i++) {
+        params.push(filtro);
+        countParams.push(filtro);
       }
+    }
 
-      const { nome, turma, email, telefone } = req.body;
-      const foto = req.file?.filename || null;
+    sql += ` ORDER BY nome ASC LIMIT ? OFFSET ?`;
+    params.push(limit, offset);
 
-      const [result] = await db.query(
-        'INSERT INTO estudantes (nome, turma, foto, email, telefone) VALUES (?, ?, ?, ?, ?)',
-        [nome, turma, foto, email, telefone]
+    const [rows] = await db.query(sql, params);
+    const [countResult] = await db.query(countSql, countParams);
+    const total = countResult[0]?.total || 0;
+
+    res.json({
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      estudantes: rows
+    });
+  } catch (error) {
+    logger.error('Erro ao listar estudantes', { error: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Erro ao listar estudantes' });
+  }
+}
+
+// --- DETALHAR ESTUDANTE ---
+async function detalhar(req, res) {
+  try {
+    const { id } = req.params;
+    const [rows] = await db.execute('SELECT * FROM estudantes WHERE id = ?', [id]);
+    if (!rows || rows.length === 0) return res.status(404).json({ message: 'Estudante não encontrado' });
+    res.json(rows[0]);
+  } catch (error) {
+    logger.error('Erro ao detalhar estudante', { error: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Erro ao detalhar estudante' });
+  }
+}
+
+// --- CADASTRAR ESTUDANTE ---
+async function cadastrar(req, res) {
+  try {
+    const { nome, email, telefone, turma } = req.body;
+    const foto = req.file ? `/uploads/${req.file.filename}` : '/uploads/default.jpg';
+    const [result] = await db.execute(
+      'INSERT INTO estudantes (nome, email, telefone, turma, foto) VALUES (?, ?, ?, ?, ?)',
+      [nome, email, telefone, turma, foto]
+    );
+    res.status(201).json({ success: true, id: result.insertId, message: 'Estudante cadastrado com sucesso' });
+  } catch (error) {
+    logger.error('Erro ao cadastrar estudante', { error: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Erro ao cadastrar estudante' });
+  }
+}
+
+// --- EDITAR ESTUDANTE ---
+async function editar(req, res) {
+  try {
+    const { id } = req.params;
+    const { nome, email, telefone, turma } = req.body;
+    const novaFoto = req.file ? `/uploads/${req.file.filename}` : null;
+
+    if (novaFoto) {
+      const [antigo] = await db.execute('SELECT foto FROM estudantes WHERE id = ?', [id]);
+      const nomeFotoAntiga = antigo[0]?.foto;
+      if (nomeFotoAntiga && nomeFotoAntiga !== '/uploads/default.jpg') {
+        const caminhoAntigo = path.join(__dirname, '../public', nomeFotoAntiga);
+        fs.unlink(caminhoAntigo, err => {
+          if (err) logger.warn('Falha ao remover foto antiga', { err, estudanteId: id });
+        });
+      }
+    }
+
+    const sql = novaFoto
+      ? 'UPDATE estudantes SET nome = ?, email = ?, telefone = ?, turma = ?, foto = ? WHERE id = ?'
+      : 'UPDATE estudantes SET nome = ?, email = ?, telefone = ?, turma = ? WHERE id = ?';
+    const params = novaFoto
+      ? [nome, email, telefone, turma, novaFoto, id]
+      : [nome, email, telefone, turma, id];
+
+    await db.execute(sql, params);
+    res.json({ success: true, message: 'Estudante atualizado com sucesso' });
+  } catch (error) {
+    logger.error('Erro ao editar estudante', { error: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Erro ao editar estudante' });
+  }
+}
+
+// --- DELETAR ESTUDANTE ---
+async function deletar(req, res) {
+  try {
+    const { id } = req.params;
+    const [rows] = await db.execute('SELECT foto FROM estudantes WHERE id = ?', [id]);
+    const nomeFoto = rows[0]?.foto;
+    if (nomeFoto && nomeFoto !== '/uploads/default.jpg') {
+      const caminho = path.join(__dirname, '../public', nomeFoto);
+      fs.unlink(caminho, err => {
+        if (err) logger.warn('Falha ao excluir foto', { err, estudanteId: id });
+      });
+    }
+    await db.execute('DELETE FROM estudantes WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Estudante removido com sucesso' });
+  } catch (error) {
+    logger.error('Erro ao deletar estudante', { error: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Erro ao deletar estudante' });
+  }
+}
+
+// --- ATUALIZAR CAMPO ESPECÍFICO (nota ou softSkill) ---
+async function atualizarCampo(req, res) {
+  try {
+    const { id } = req.params;
+    let { campo, valor } = req.body;
+
+    const camposValidos = ['nota', 'softSkill'];
+    if (!camposValidos.includes(campo)) {
+      return res.status(400).json({ message: 'Campo inválido para atualização' });
+    }
+
+    if (campo === 'nota') {
+      valor = parseFloat(valor);
+      if (isNaN(valor) || valor < 0 || valor > 10) {
+        return res.status(400).json({ message: 'Nota inválida, deve estar entre 0 e 10' });
+      }
+    }
+
+    if (campo === 'softSkill') {
+      const valorNormalizado = valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const softSkillOptionsNorm = softSkillOptions.map(v =>
+        v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
       );
-
-      const [estudante] = await db.query('SELECT * FROM estudantes WHERE id = ?', [result.insertId]);
-
-      res.status(201).json({ status: 'success', data: estudante[0] });
-    } catch (error) {
-      if (req.file) await this._removerArquivo(req.file.filename);
-      console.error('Erro ao cadastrar estudante:', error);
-      next(createError(500, 'Falha ao cadastrar estudante'));
+      if (!softSkillOptionsNorm.includes(valorNormalizado)) {
+        return res.status(400).json({ message: 'SoftSkill inválida' });
+      }
     }
+
+    // Usar parâmetro preparado para evitar SQL injection
+    const sql = `UPDATE estudantes SET ${campo} = ? WHERE id = ?`;
+    await db.execute(sql, [valor, id]);
+
+    const [rows] = await db.execute('SELECT * FROM estudantes WHERE id = ?', [id]);
+    if (!rows || rows.length === 0) return res.status(404).json({ message: 'Estudante não encontrado' });
+
+    res.json({ success: true, estudante: rows[0], message: `${campo} atualizado com sucesso` });
+  } catch (error) {
+    logger.error('Erro ao atualizar campo do estudante', { error: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Erro ao atualizar campo do estudante' });
   }
+}
 
-  static async listar(req, res, next) {
-    try {
-      const { filtro } = req.query;
-      let query = 'SELECT * FROM estudantes';
-      const params = [];
+// --- ATUALIZAR ESTUDANTE (nota e/ou softSkill juntos) ---
+async function atualizarEstudante(req, res) {
+  try {
+    const { id } = req.params;
+    let { nota, softSkill } = req.body;
 
-      if (filtro) {
-        query += ' WHERE nome LIKE ? OR turma LIKE ?';
-        const likeFiltro = `%${filtro}%`;
-        params.push(likeFiltro, likeFiltro);
+    const updates = [];
+    const params = [];
+
+    if (nota !== undefined) {
+      nota = parseFloat(nota);
+      if (isNaN(nota) || nota < 0 || nota > 10) {
+        return res.status(400).json({ message: 'Nota inválida, deve estar entre 0 e 10' });
       }
-
-      query += ' ORDER BY nome ASC';
-      const [estudantes] = await db.query(query, params);
-      res.json(estudantes);
-    } catch (error) {
-      console.error('Erro ao listar estudantes:', error);
-      next(createError(500, 'Falha ao listar estudantes'));
+      updates.push('nota = ?');
+      params.push(nota);
     }
-  }
 
-  static async editar(req, res, next) {
-    try {
-      const { id } = req.params;
-      let { nome, turma, email, telefone, nota } = req.body;
-      const foto = req.file?.filename || null;
-
-      nota = nota === undefined || nota === '' ? null : parseFloat(nota);
-
-      const [estudanteAtual] = await db.query('SELECT foto FROM estudantes WHERE id = ?', [id]);
-
-      if (!estudanteAtual.length) {
-        if (req.file) await this._removerArquivo(req.file.filename);
-        return next(createError(404, 'Estudante não encontrado'));
+    if (softSkill !== undefined) {
+      const softSkillOptionsNorm = softSkillOptions.map(v =>
+        v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+      );
+      const valorNorm = softSkill.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      if (!softSkillOptionsNorm.includes(valorNorm)) {
+        return res.status(400).json({ message: 'SoftSkill inválida' });
       }
-
-      const updates = [];
-      const values = [];
-
-      if (nome !== undefined) {
-        updates.push('nome = ?');
-        values.push(nome);
-      }
-      if (turma !== undefined) {
-        updates.push('turma = ?');
-        values.push(turma);
-      }
-      if (email !== undefined) {
-        updates.push('email = ?');
-        values.push(email);
-      }
-      if (telefone !== undefined) {
-        updates.push('telefone = ?');
-        values.push(telefone);
-      }
-      if (nota !== undefined) {
-        updates.push('nota = ?');
-        values.push(nota);
-      }
-      if (foto !== null) {
-        updates.push('foto = ?');
-        values.push(foto);
-      }
-
-      if (updates.length === 0) {
-        return res.status(400).json({ message: 'Nenhum campo fornecido para atualização' });
-      }
-
-      const sql = `UPDATE estudantes SET ${updates.join(', ')} WHERE id = ?`;
-      values.push(id);
-
-      await db.query(sql, values);
-
-      if (req.file && estudanteAtual[0].foto) {
-        await this._removerArquivo(estudanteAtual[0].foto);
-      }
-
-      const [estudante] = await db.query('SELECT * FROM estudantes WHERE id = ?', [id]);
-
-      res.json({ status: 'success', data: estudante[0] });
-    } catch (error) {
-      if (req.file) await this._removerArquivo(req.file.filename);
-      console.error('Erro ao editar estudante:', error);
-      next(createError(500, 'Falha ao editar estudante'));
+      updates.push('softSkill = ?');
+      params.push(softSkill);
     }
-  }
 
-  static async atualizarNota(req, res, next) {
-    try {
-      const { id } = req.params;
-      let { nota } = req.body;
-
-      nota = nota === undefined || nota === '' ? null : parseFloat(nota);
-
-      const [resultado] = await db.query('UPDATE estudantes SET nota = ? WHERE id = ?', [nota, id]);
-
-      if (resultado.affectedRows === 0) {
-        return next(createError(404, 'Estudante não encontrado'));
-      }
-
-      const [estudante] = await db.query('SELECT * FROM estudantes WHERE id = ?', [id]);
-      res.json({ status: 'success', data: estudante[0] });
-    } catch (error) {
-      console.error('Erro ao atualizar nota:', error);
-      next(createError(500, 'Erro ao atualizar nota'));
+    if (updates.length === 0) {
+      return res.status(400).json({ message: 'Nenhum campo válido para atualizar' });
     }
-  }
 
-  static async deletar(req, res, next) {
-    try {
-      const { id } = req.params;
-      const [estudante] = await db.query('SELECT foto FROM estudantes WHERE id = ?', [id]);
+    params.push(id);
+    const sql = `UPDATE estudantes SET ${updates.join(', ')} WHERE id = ?`;
+    await db.execute(sql, params);
 
-      if (!estudante.length) return next(createError(404, 'Estudante não encontrado'));
+    const [rows] = await db.execute('SELECT * FROM estudantes WHERE id = ?', [id]);
+    if (!rows || rows.length === 0) return res.status(404).json({ message: 'Estudante não encontrado' });
 
-      await db.query('DELETE FROM estudantes WHERE id = ?', [id]);
-
-      if (estudante[0].foto) {
-        await this._removerArquivo(estudante[0].foto);
-      }
-
-      res.json({ status: 'success', message: 'Estudante removido com sucesso' });
-    } catch (error) {
-      console.error('Erro ao deletar estudante:', error);
-      next(createError(500, 'Falha ao remover estudante'));
-    }
+    res.json({ success: true, estudante: rows[0], message: 'Estudante atualizado com sucesso' });
+  } catch (error) {
+    logger.error('Erro ao atualizar estudante', { error: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Erro ao atualizar estudante' });
   }
 }
 
 module.exports = {
-  cadastrar: (req, res, next) => EstudanteController.cadastrar(req, res, next),
-  listar: (req, res, next) => EstudanteController.listar(req, res, next),
-  editar: (req, res, next) => EstudanteController.editar(req, res, next),
-  deletar: (req, res, next) => EstudanteController.deletar(req, res, next),
-  atualizarNota: (req, res, next) => EstudanteController.atualizarNota(req, res, next),
+  listar,
+  detalhar,
+  cadastrar,
+  editar,
+  deletar,
+  atualizarCampo,
+  atualizarEstudante
 };

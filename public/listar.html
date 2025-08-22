@@ -2,8 +2,9 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Listagem de Estudantes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Listagem de Estudantes | Karômetro</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,364 +13,204 @@
       padding: 0;
       color: white;
     }
-
-    .container {
-      width: 100%;
-      max-width: 1000px;
-      margin: 50px auto;
-      padding: 30px;
-      background-color: #34495e;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      position: relative;
+    header {
+      background-color: #1a252f;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-
-    h1 {
-      text-align: center;
-      color: #ecf0f1;
-      margin-bottom: 20px;
-    }
-
-    .btn-voltar {
-      display: inline-block;
-      background-color: #4CAF50;
+    #btnVoltar {
+      background: none;
+      border: none;
       color: white;
-      padding: 10px 15px;
-      margin-bottom: 20px;
-      text-decoration: none;
-      border-radius: 5px;
-      transition: background-color 0.3s ease;
+      font-size: 1.5rem;
+      cursor: pointer;
+      margin-right: 1rem;
     }
-
-    .btn-voltar:hover {
-      background-color: #777;
-    }
-
     #btnSair {
-      position: absolute;
-      top: 20px;
-      right: 20px;
       background-color: #e74c3c;
       color: white;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+    .top-controls {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    #filtro {
+      flex: 1;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      font-size: 16px;
+      background-color: #34495e;
+      color: white;
+    }
+    video {
+      width: 160px;
+      height: 120px;
+      background-color: black;
+      border-radius: 10px;
+    }
+    #detectarBtn, #desligarCamera {
       padding: 10px 15px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    #btnSair:hover {
-      background-color: #777;
-    }
-
-    .filtro-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin: 20px auto;
-    }
-
-    .filtro-input {
-      width: 100%;
-      max-width: 300px;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background-color: #2c3e50;
       color: white;
+      font-size: 14px;
     }
-
-    .camera-preview {
-      width: 150px;
-      height: 120px;
-      background-color: black;
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .camera-preview video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .camera-controls {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .camera-controls button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 8px 12px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .camera-controls button:hover {
-      background-color: #777;
-    }
-
+    #detectarBtn { background-color: #4caf50; }
+    #desligarCamera { background-color: #e67e22; display: none; }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      margin-top: 10px;
     }
-
-    table th, table td {
+    th, td {
       padding: 12px;
       text-align: center;
-      vertical-align: middle;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #555;
     }
-
-    table th {
-      background-color: #4CAF50;
-      color: #fff;
-      font-weight: bold;
-    }
-
-    table tr:nth-child(even) {
-      background-color: #34495e;
-    }
-
-    table td img {
+    th { background-color: #4caf50; }
+    tr:nth-child(even) { background-color: #34495e; }
+    td img {
       width: 50px;
       height: 50px;
       border-radius: 50%;
       object-fit: cover;
     }
-
-    .action-buttons {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .action-buttons button {
-      padding: 6px 12px;
-      background-color: #4CAF50;
-      color: white;
+    .actions button {
+      margin: 2px;
+      padding: 6px 10px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      color: white;
+      font-size: 14px;
     }
-
-    .action-buttons button:hover {
-      background-color: #777;
-    }
-
-    .action-buttons .btn-delete {
-      background-color: #e74c3c;
-    }
-
-    .action-buttons .btn-delete:hover {
-      background-color: #777;
-    }
-
+    .editar { background-color: #3498db; }
+    .excluir { background-color: #e74c3c; }
     .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
       display: none;
-      align-items: center;
+      position: fixed;
+      z-index: 999;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.6);
       justify-content: center;
-      z-index: 1000;
-      transition: opacity 0.3s ease;
+      align-items: center;
     }
-
     .modal-content {
-      background-color: #34495e;
-      padding: 20px;
-      border-radius: 8px;
-      width: 300px;
-      text-align: center;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      animation: zoomIn 0.3s ease;
-    }
-
-    @keyframes zoomIn {
-      from { transform: scale(0.9); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    .modal-content img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
-
-    .modal-content button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    .modal-content button:hover {
-      background-color: #777;
-    }
-
-    .mensagem-vazio {
-      text-align: center;
-      color: #bbb;
-      margin-top: 20px;
-    }
-
-    .notas-input {
-      width: 80px;
-      padding: 6px;
-      border-radius: 6px;
-      border: 1px solid #ddd;
       background-color: #2c3e50;
       color: white;
-    }
-
-    .notas-container {
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
       display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
+      flex-direction: column;
     }
-
+    .modal-content input, .modal-content select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: none;
+      background-color: #34495e;
+      color: white;
+      font-size: 16px;
+    }
+    .modal-content button {
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #4caf50;
+      color: white;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .close-button {
+      align-self: flex-end;
+      font-size: 24px;
+      cursor: pointer;
+      color: #ccc;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
-  <script>
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert("Você precisa estar logado para acessar esta página.");
-      window.location.href = 'login.html';
-    }
-  </script>
+  <header>
+    <div style="display: flex; align-items: center;">
+      <button id="btnVoltar" title="Voltar"><i class="fas fa-arrow-left"></i></button>
+      <h1 style="margin: 0;">Karômetro - Estudantes</h1>
+    </div>
+    <button id="btnSair" type="button">Sair</button>
+  </header>
 
   <div class="container">
-    <h1>Listagem de Estudantes</h1>
-
-    <button id="btnSair">Sair</button>
-    <a href="cadastro.html" class="btn-voltar">← Voltar para Cadastro</a>
-
-    <div class="filtro-container">
-      <input type="text" id="filtro" class="filtro-input" placeholder="Digite o nome ou turma para filtrar">
-
-      <div class="camera-controls">
-        <div class="camera-preview">
-          <video id="camera" autoplay></video>
-        </div>
-        <button onclick="reconhecerRosto()">Reconhecer</button>
-        <button onclick="desligarCamera()">Desligar Câmera</button>
-      </div>
+    <div class="top-controls">
+      <input type="text" id="filtro" placeholder="Filtrar por nome, turma ou soft skill..." />
+      <video id="video" autoplay muted></video>
+      <button id="detectarBtn" type="button">Detectar</button>
+      <button id="desligarCamera" type="button">Desligar Câmera</button>
     </div>
 
-    <table id="tabela-estudantes">
+    <table>
       <thead>
         <tr>
           <th>Foto</th>
           <th>Nome</th>
           <th>Turma</th>
-          <th>Notas</th>
+          <th>Email</th>
+          <th>Nota</th>
+          <th>Soft Skill</th>
           <th>Ações</th>
         </tr>
       </thead>
-      <tbody></tbody>
+      <tbody id="tabelaEstudantes"></tbody>
     </table>
-
-    <div class="mensagem-vazio" id="mensagem-vazio" style="display: none;">
-      Nenhum estudante encontrado.
-    </div>
   </div>
 
+  <!-- MODAL DE ATUALIZAÇÃO -->
   <div id="modal" class="modal">
     <div class="modal-content">
-      <h2>Detalhes do Estudante</h2>
-      <p><strong>ID:</strong> <span id="modal-id"></span></p>
-      <p><strong>Nome:</strong> <span id="modal-nome"></span></p>
-      <p><strong>Turma:</strong> <span id="modal-turma"></span></p>
-      <p><strong>Notas:</strong> <span id="modal-notas"></span></p>
-      <p><strong>Foto:</strong><br><img id="modal-foto" src="" alt="Foto do estudante"></p>
+      <span class="close-button" id="closeModal">&times;</span>
+      <h2>Atualizar Estudante</h2>
 
-      <div class="notas-container">
-        <input type="number" id="modal-nota" class="notas-input" placeholder="Nota" min="0" step="0.1">
-        <button onclick="salvarNota()">Atualizar Nota</button>
-      </div>
+      <div id="infoEstudante" style="margin: 10px 0; font-size: 14px;"></div>
 
-      <button onclick="fecharModal()">Fechar</button>
+      <label for="notaInput">Nota</label>
+      <input type="number" id="notaInput" min="0" max="10" step="0.1" />
+
+      <label for="softSkillSelect">Soft Skill</label>
+      <select id="softSkillSelect">
+        <option value="">-- Selecione --</option>
+        <option value="Comunicação">Comunicação</option>
+        <option value="Trabalho em Equipe">Trabalho em Equipe</option>
+        <option value="Motivação">Motivação</option>
+        <option value="Criatividade">Criatividade</option>
+        <option value="Flexibilidade">Flexibilidade</option>
+        <option value="Liderança">Liderança</option>
+      </select>
+
+      <button id="salvarAlteracoes">Salvar</button>
     </div>
   </div>
-
-  <script>
-    const video = document.getElementById('camera');
-    let cameraStream = null;
-
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        cameraStream = stream;
-        video.srcObject = stream;
-      })
-      .catch(error => {
-        console.error('Erro ao acessar a câmera:', error);
-        alert('Erro ao acessar a câmera: ' + error.message);
-      });
-
-    function reconhecerRosto() {
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
-
-      const imagemBase64 = canvas.toDataURL('image/jpeg');
-
-      fetch('http://localhost:3000/reconhecer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imagem: imagemBase64 })
-      })
-      .then(res => res.json())
-      .then(result => {
-        if (result && result.nome) {
-          alert(`Estudante identificado: ${result.nome}`);
-          aplicarFiltroAutomatico(result.nome);
-        } else {
-          alert('Nenhum rosto reconhecido.');
-        }
-      })
-      .catch(error => {
-        console.error('Erro ao enviar imagem:', error);
-        alert('Erro no reconhecimento facial: ' + error.message);
-      });
-    }
-
-    function desligarCamera() {
-      if (cameraStream) {
-        const tracks = cameraStream.getTracks();
-        tracks.forEach(track => track.stop());
-        video.srcObject = null;
-        alert('Câmera desligada');
-      }
-    }
-
-    function aplicarFiltroAutomatico(nome) {
-      const filtroInput = document.getElementById('filtro');
-      filtroInput.value = nome;
-      carregarEstudantes();
-    }
-  </script>
 
   <script src="listar.js"></script>
 </body>

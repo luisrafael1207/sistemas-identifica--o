@@ -1,158 +1,158 @@
 :root {
-  /* Variáveis CSS para reaproveitamento e consistência de estilos */
-  --primary-color: #4CAF50;
-  --primary-hover: #45a049;
-  --primary-active: #388e3c;
-  --text-color: #333;
-  --text-light: #555;
-  --placeholder-color: #aaa;
-  --border-color: #ddd;
-  --bg-color: #f7f7f7;
-  --input-bg: #f9f9f9;
-  --white: #ffffff;
-  --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 12px 24px rgba(0, 0, 0, 0.1);
-  --shadow-focus: 0 0 0 3px rgba(76, 175, 80, 0.3);
-  --transition: all 0.3s ease;
+    /* Variáveis CSS para reaproveitamento e consistência de estilos */
+    --primary-color: #4CAF50;
+    --primary-hover: #45a049;
+    --primary-active: #388e3c;
+    --text-color: #333;
+    --text-light: #555;
+    --placeholder-color: #aaa;
+    --border-color: #ddd;
+    --bg-color: #f7f7f7;
+    --input-bg: #f9f9f9;
+    --white: #ffffff;
+    --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 12px 24px rgba(0, 0, 0, 0.1);
+    --shadow-focus: 0 0 0 3px rgba(76, 175, 80, 0.3);
+    --transition: all 0.3s ease;
 }
 
 /* Reset e base */
 *,
 *::before,
 *::after {
-  margin: 0; /* Remove margens padrão */
-  padding: 0; /* Remove preenchimento padrão */
-  box-sizing: border-box; /* Inclui padding e border no cálculo do tamanho */
+    margin: 0; /* Remove margens padrão */
+    padding: 0; /* Remove preenchimento padrão */
+    box-sizing: border-box; /* Inclui padding e border no cálculo do tamanho */
 }
 
 body {
-  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Tipografia principal */
-  background-color: var(--bg-color); /* Cor de fundo da página */
-  color: var(--text-color); /* Cor do texto */
-  line-height: 1.6; /* Altura das linhas */
-  min-height: 100vh; /* Altura mínima da tela */
-  padding: 20px; /* Espaçamento interno */
-  display: flex; /* Flexbox para centralizar o conteúdo */
-  justify-content: center; /* Centraliza horizontalmente */
-  align-items: center; /* Centraliza verticalmente */
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Tipografia principal */
+    background-color: var(--bg-color); /* Cor de fundo da página */
+    color: var(--text-color); /* Cor do texto */
+    line-height: 1.6; /* Altura das linhas */
+    min-height: 100vh; /* Altura mínima da tela */
+    padding: 20px; /* Espaçamento interno */
+    display: flex; /* Flexbox para centralizar o conteúdo */
+    justify-content: center; /* Centraliza horizontalmente */
+    align-items: center; /* Centraliza verticalmente */
 }
 
 /* Container principal */
 .container {
-  width: 100%; /* Ocupa 100% da largura disponível */
-  max-width: 500px; /* Largura máxima */
-  padding: 2.5rem; /* Espaçamento interno */
-  background-color: var(--white); /* Fundo branco */
-  border-radius: 12px; /* Bordas arredondadas */
-  box-shadow: var(--shadow-md); /* Sombra ao redor */
-  transition: transform 0.3s ease; /* Transição suave ao aplicar transform */
+    width: 100%; /* Ocupa 100% da largura disponível */
+    max-width: 500px; /* Largura máxima */
+    padding: 2.5rem; /* Espaçamento interno */
+    background-color: var(--white); /* Fundo branco */
+    border-radius: 12px; /* Bordas arredondadas */
+    box-shadow: var(--shadow-md); /* Sombra ao redor */
+    transition: transform 0.3s ease; /* Transição suave ao aplicar transform */
 }
 
 .container:hover {
-  transform: translateY(-4px); /* Move levemente para cima ao passar o mouse */
+    transform: translateY(-4px); /* Move levemente para cima ao passar o mouse */
 }
 
 /* Título */
 h1 {
-  text-align: center; /* Centraliza o título */
-  color: var(--text-color); /* Cor do texto */
-  font-size: 1.75rem; /* Tamanho da fonte */
-  font-weight: 700; /* Peso da fonte (negrito) */
-  margin-bottom: 1.5rem; /* Espaço abaixo do título */
-  text-transform: uppercase; /* Transforma o texto em maiúsculas */
-  letter-spacing: 0.05em; /* Espaçamento entre letras */
+    text-align: center; /* Centraliza o título */
+    color: var(--text-color); /* Cor do texto */
+    font-size: 1.75rem; /* Tamanho da fonte */
+    font-weight: 700; /* Peso da fonte (negrito) */
+    margin-bottom: 1.5rem; /* Espaço abaixo do título */
+    text-transform: uppercase; /* Transforma o texto em maiúsculas */
+    letter-spacing: 0.05em; /* Espaçamento entre letras */
 }
 
 /* Grupos de entrada */
 .input-group {
-  margin-bottom: 1.5rem; /* Espaço abaixo do grupo de entrada */
+    margin-bottom: 1.5rem; /* Espaço abaixo do grupo de entrada */
 }
 
 .input-group label {
-  display: block; /* Força o label a ocupar uma linha inteira */
-  font-size: 0.95rem; /* Tamanho da fonte do label */
-  font-weight: 600; /* Peso da fonte */
-  margin-bottom: 0.5rem; /* Espaço entre o label e o input */
-  color: var(--text-light); /* Cor do label */
+    display: block; /* Força o label a ocupar uma linha inteira */
+    font-size: 0.95rem; /* Tamanho da fonte do label */
+    font-weight: 600; /* Peso da fonte */
+    margin-bottom: 0.5rem; /* Espaço entre o label e o input */
+    color: var(--text-light); /* Cor do label */
 }
 
 .input-group input {
-  width: 100%; /* Ocupa toda a largura disponível */
-  padding: 0.875rem 1rem; /* Espaçamento interno */
-  font-size: 1rem; /* Tamanho da fonte */
-  border: 1px solid var(--border-color); /* Borda do input */
-  border-radius: 8px; /* Bordas arredondadas */
-  background-color: var(--input-bg); /* Cor de fundo do input */
-  transition: var(--transition); /* Transição suave nos efeitos */
+    width: 100%; /* Ocupa toda a largura disponível */
+    padding: 0.875rem 1rem; /* Espaçamento interno */
+    font-size: 1rem; /* Tamanho da fonte */
+    border: 1px solid var(--border-color); /* Borda do input */
+    border-radius: 8px; /* Bordas arredondadas */
+    background-color: var(--input-bg); /* Cor de fundo do input */
+    transition: var(--transition); /* Transição suave nos efeitos */
 }
 
 .input-group input::placeholder {
-  color: var(--placeholder-color); /* Cor do texto do placeholder */
-  opacity: 1; /* Opacidade total */
+    color: var(--placeholder-color); /* Cor do texto do placeholder */
+    opacity: 1; /* Opacidade total */
 }
 
 .input-group input:focus {
-  border-color: var(--primary-color); /* Cor da borda ao focar */
-  outline: none; /* Remove contorno padrão */
-  box-shadow: var(--shadow-focus); /* Sombra ao focar */
+    border-color: var(--primary-color); /* Cor da borda ao focar */
+    outline: none; /* Remove contorno padrão */
+    box-shadow: var(--shadow-focus); /* Sombra ao focar */
 }
 
 /* Botão */
 button {
-  width: 100%; /* Ocupa toda a largura do container */
-  padding: 1rem; /* Espaçamento interno */
-  background-color: var(--primary-color); /* Cor de fundo */
-  color: var(--white); /* Cor do texto */
-  border: none; /* Remove a borda padrão */
-  border-radius: 8px; /* Bordas arredondadas */
-  font-size: 1rem; /* Tamanho do texto */
-  font-weight: 600; /* Peso da fonte */
-  cursor: pointer; /* Cursor em formato de mão */
-  transition: var(--transition); /* Transição suave */
-  box-shadow: var(--shadow-sm); /* Sombra leve */
-  letter-spacing: 0.025em; /* Espaçamento entre letras */
+    width: 100%; /* Ocupa toda a largura do container */
+    padding: 1rem; /* Espaçamento interno */
+    background-color: var(--primary-color); /* Cor de fundo */
+    color: var(--white); /* Cor do texto */
+    border: none; /* Remove a borda padrão */
+    border-radius: 8px; /* Bordas arredondadas */
+    font-size: 1rem; /* Tamanho do texto */
+    font-weight: 600; /* Peso da fonte */
+    cursor: pointer; /* Cursor em formato de mão */
+    transition: var(--transition); /* Transição suave */
+    box-shadow: var(--shadow-sm); /* Sombra leve */
+    letter-spacing: 0.025em; /* Espaçamento entre letras */
 }
 
 button:hover {
-  background-color: var(--primary-hover); /* Cor ao passar o mouse */
+    background-color: var(--primary-hover); /* Cor ao passar o mouse */
 }
 
 button:focus {
-  outline: none; /* Remove contorno padrão */
-  box-shadow: var(--shadow-focus); /* Aplica sombra ao focar */
+    outline: none; /* Remove contorno padrão */
+    box-shadow: var(--shadow-focus); /* Aplica sombra ao focar */
 }
 
 button:active {
-  background-color: var(--primary-active); /* Cor ao clicar */
-  transform: scale(0.98); /* Efeito de clique (encolhe levemente) */
+    background-color: var(--primary-active); /* Cor ao clicar */
+    transform: scale(0.98); /* Efeito de clique (encolhe levemente) */
 }
 
 /* Campos inválidos */
 .input-group input:invalid:not(:placeholder-shown) {
-  border-color: #e74c3c; /* Borda vermelha se inválido e com conteúdo */
+    border-color: #e74c3c; /* Borda vermelha se inválido e com conteúdo */
 }
 
 .input-group input:invalid:not(:placeholder-shown):focus {
-  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2); /* Sombra vermelha ao focar campo inválido */
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2); /* Sombra vermelha ao focar campo inválido */
 }
 
 /* Responsividade */
 @media (max-width: 600px) {
-  .container {
-    padding: 1.5rem; /* Reduz o padding para telas menores */
-  }
+    .container {
+        padding: 1.5rem; /* Reduz o padding para telas menores */
+    }
 
-  h1 {
-    font-size: 1.5rem; /* Reduz o tamanho do título */
-  }
+    h1 {
+        font-size: 1.5rem; /* Reduz o tamanho do título */
+    }
 }
 
 /* Acessibilidade para animações */
 @media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important; /* Minimiza duração das animações */
-    animation-iteration-count: 1 !important; /* Executa animação uma vez */
-    transition-duration: 0.01ms !important; /* Minimiza duração da transição */
-    scroll-behavior: auto !important; /* Remove rolagem suave */
-  }
+    * {
+        animation-duration: 0.01ms !important; /* Minimiza duração das animações */
+        animation-iteration-count: 1 !important; /* Executa animação uma vez */
+        transition-duration: 0.01ms !important; /* Minimiza duração da transição */
+        scroll-behavior: auto !important; /* Remove rolagem suave */
+    }
 }

@@ -1,23 +1,46 @@
-// 📦 Importa o framework Express, que será usado para criar e organizar rotas
 const express = require('express');
-
-// 🛠 Cria uma instância do roteador do Express
 const router = express.Router();
-
-// 🔐 Importa o controlador de autenticação, que contém a lógica para login, logout e verificação
 const authController = require('../controllers/authController');
+const db = require('../config/db');
+// Importa o objeto de validações com o nome correto
+const { usuarioValidations, handleValidationErrors } = require('../middleware/validationMiddleware');
 
-// ✅ Rota de login
-// POST /auth/login → envia email e senha, e retorna dados do usuário + token (ou sessão)
-router.post('/login', authController.login);
+// ----- LOGIN -----
+router.post(
+  '/login',
+  usuarioValidations.login,
+  handleValidationErrors,
+  authController.login
+);
 
-// 🚪 Rota de logout
-// POST /auth/logout → encerra a sessão ou limpa o cookie com o token
+// ----- LOGOUT -----
 router.post('/logout', authController.logout);
 
-// 🔍 Rota para verificar se o usuário está autenticado
-// GET /auth/check → retorna status de autenticação
-router.get('/check', authController.checkAuth);
+// ----- CADASTRO DE USUÁRIO -----
+router.post(
+  '/cadastrar',
+  usuarioValidations.register, // Garante que a função de validação seja a correta
+  handleValidationErrors,
+  authController.cadastrarUsuario
+);
 
-// 📤 Exporta o roteador para ser usado no server.js
+// ----- VERIFICAÇÃO DE SESSÃO -----
+router.get('/verificar', authController.checkAuth);
+
+// ----- VERIFICAR SE EMAIL JÁ EXISTE -----
+router.get('/verificar-email', async (req, res) => {
+  const email = req.query.email;
+  if (!email) {
+    return res.status(400).json({ exists: false, message: 'Email não fornecido' });
+  }
+
+  try {
+    const [rows] = await db.execute('SELECT id FROM usuarios WHERE email = ?', [email]);
+    return res.json({ exists: rows.length > 0 });
+  } catch (error) {
+    console.error('Erro ao verificar email:', error);
+    return res.status(500).json({ exists: false, message: 'Erro no servidor' });
+  }
+});
+
 module.exports = router;

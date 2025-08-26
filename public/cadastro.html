@@ -115,6 +115,22 @@
             z-index: 1000;
         }
         .logout-button:hover { background-color: #1a1a2e; }
+
+        /* ---------- TOASTS ---------- */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 5px;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.3s;
+            z-index: 10000;
+        }
+        .toast-sucesso { background-color: #4CAF50; }
+        .toast-erro { background-color: #e74c3c; }
     </style>
 </head>
 <body>
@@ -175,8 +191,10 @@
                 <div class="spinner" id="spinner"></div>
             </div>
         </form>
+
         <div style="text-align: center; margin-top: 20px;">
             <a href="listar.html" class="botao-link">📄 Ver Lista</a>
+            <a href="#" id="editarBtn" class="botao-link" style="display:none;">✏️ Editar</a>
         </div>
     </div>
 

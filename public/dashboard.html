@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Karômetro</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body {
+      background: linear-gradient(135deg, #1e1e2f, #2c2c44);
+      color: #fff; display: flex; flex-direction: column; align-items: center;
+      min-height: 100vh; padding: 20px; position: relative;
+    }
+    .logo-top-left {
+      position: absolute; top: 20px; left: 20px;
+      width: 100px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.3s; animation: float 3s ease-in-out infinite;
+    }
+    .logo-top-left:hover { transform: scale(1.05); }
+    header {
+      text-align: center; margin-top: 100px; margin-bottom: 30px;
+      animation: fadeInDown 1s ease-out forwards;
+    }
+    header h1 { font-size: 2.5rem; margin-bottom: 10px; animation: fadeIn 1.5s ease forwards; }
+    header p { font-size: 1.2rem; color: #bbb; max-width: 500px; margin: 0 auto; animation: fadeIn 2s ease forwards; }
+
+    .cards-container {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px; width: 100%; max-width: 1000px;
+      margin-bottom: 10px; /* reduzido */
+    }
+    .card {
+      background: rgba(255,255,255,0.05); border-radius: 15px;
+      padding: 20px; text-align: center; transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer;
+    }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+    .card i { font-size: 2.5rem; margin-bottom: 15px; color: #4CAF50; }
+    .card h3 { margin-bottom: 10px; font-size: 1.3rem; }
+    .card p { color: #ccc; font-size: 0.95rem; }
+
+    .charts-container {
+      display: none; /* esconde inicialmente */
+      justify-content: center; width: 100%; max-width: 600px;
+      margin-bottom: 20px; /* reduzido */
+    }
+    canvas { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; flex: 1; }
+
+    .btn-entrar {
+      background-color: #4CAF50; border: none;
+      padding: 15px 40px; font-size: 1.2rem; color: #fff; border-radius: 12px;
+      cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.3s;
+    }
+    .btn-entrar:hover { background-color: #45a049; transform: scale(1.05); box-shadow: 0 6px 15px rgba(0,0,0,0.4); }
+
+    @keyframes fadeInDown { 0% { opacity: 0; transform: translateY(-50px); } 100% { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+    @media (max-width: 480px) {
+      header h1 { font-size: 2rem; }
+      header p { font-size: 1rem; }
+      .btn-entrar { padding: 12px 30px; font-size: 1rem; }
+      .logo-top-left { width: 80px; }
+      canvas { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <img src="Logo_IFC_vertical.png" alt="Logo IFC" class="logo-top-left">
+
+  <header>
+    <h1><i class="fas fa-users"></i> Karômetro</h1>
+    <p>Bem-vindo ao sistema de gerenciamento de estudantes. Clique em "Entrar" para acessar o login e começar a gerenciar os dados.</p>
+  </header>
+
+  <div class="cards-container">
+    <div class="card"><i class="fas fa-spinner fa-spin"></i><h3>Carregando...</h3><p>Aguarde</p></div>
+  </div>
+
+  <div class="charts-container">
+    <canvas id="chartNotas" width="400" height="250"></canvas>
+  </div>
+
+  <button class="btn-entrar" id="btnEntrar">Entrar</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="dashboard.js" defer></script>
+</body>
+</html>

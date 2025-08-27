@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const fetchAuth = async (url, options = {}) => {
-        if (!options.headers) options.headers = {};
+        options.headers = options.headers || {};
         const token = getToken();
         if (!token) {
             logout();
@@ -31,9 +31,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                     alert("Token inválido ou expirado. Faça login novamente.");
                     logout();
                     return null;
-                } else {
-                    throw new Error(`HTTP ${res.status}`);
                 }
+                throw new Error(`HTTP ${res.status}`);
             }
             return res.json();
         } catch (err) {
@@ -62,10 +61,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         const estudantes = data.estudantes || data;
 
         // ----------------- CARDS -----------------
+        const total = estudantes.length;
+        const maiores7 = estudantes.filter(e => Number(e.nota) >= 7).length;
+        const menores7 = estudantes.filter(e => Number(e.nota) < 7).length;
+
         cardsContainer.innerHTML = `
-            ${criarCard("fas fa-user-graduate", "Total de Estudantes", estudantes.length, "todos")}
-            ${criarCard("fas fa-star", "Notas ≥ 7", estudantes.filter(e => e.nota >= 7).length, "nota7")}
-            ${criarCard("fas fa-star-half-alt", "Notas < 7", estudantes.filter(e => e.nota < 7).length, "notaMenor7")}
+            ${criarCard("fas fa-user-graduate", "Total de Estudantes", total, "todos")}
+            ${criarCard("fas fa-star", "Notas ≥ 7", maiores7, "nota7")}
+            ${criarCard("fas fa-star-half-alt", "Notas < 7", menores7, "notaMenor7")}
             ${criarCard("fas fa-cogs", "Configurações", "Gerencie usuários e permissões", "config")}
         `;
 
@@ -74,25 +77,30 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const filter = card.dataset.filter;
 
                 if (filter === "config") {
-                    const senha = prompt("Digite a senha de configurações:");
-                    if (!senha) return;
+                    if (!sessionStorage.getItem('acessoConfig')) {
+                        const senha = prompt("Digite a senha de configurações:");
+                        if (!senha) return;
 
-                    try {
-                        const res = await fetch("http://localhost:3000/auth/check-config-pass", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ password: senha })
-                        });
+                        try {
+                            const res = await fetch("http://localhost:3000/auth/check-config-pass", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ password: senha })
+                            });
 
-                        if (res.ok) {
-                            window.location.href = "cadastroUsuario.html";
-                        } else {
-                            alert("Senha incorreta!");
+                            if (res.ok) {
+                                sessionStorage.setItem('acessoConfig', 'true');
+                            } else {
+                                alert("Senha incorreta!");
+                                return;
+                            }
+                        } catch (err) {
+                            console.error("Erro ao validar senha:", err);
+                            alert("Erro ao conectar com o servidor.");
+                            return;
                         }
-                    } catch (err) {
-                        console.error("Erro ao validar senha:", err);
-                        alert("Erro ao conectar com o servidor.");
                     }
+                    window.location.href = "cadastroUsuario.html";
                     return;
                 }
 
@@ -103,11 +111,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
         });
 
-        // ----------------- GRÁFICOS -----------------
+        // ----------------- GRÁFICO -----------------
         const ctxNotas = document.getElementById("chartNotas").getContext("2d");
         const notaDistrib = Array(11).fill(0);
+
         estudantes.forEach(e => {
-            const n = Math.round(e.nota ?? 0);
+            const n = Math.round(Number(e.nota) || 0);
             if (n >= 0 && n <= 10) notaDistrib[n]++;
         });
 
@@ -115,14 +124,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.chartNotasInstance = new Chart(ctxNotas, {
             type: 'bar',
             data: {
-                labels: Array.from({length:11}, (_,i)=>i),
+                labels: Array.from({ length: 11 }, (_, i) => i),
                 datasets: [{
                     label: 'Distribuição de Notas',
                     data: notaDistrib,
                     backgroundColor: '#4CAF50'
                 }]
             },
-            options: { responsive: true, plugins: { legend: { display: false } } }
+            options: { 
+                responsive: true, 
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
         });
     };
 

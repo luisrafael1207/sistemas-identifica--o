@@ -64,33 +64,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (spinner) spinner.remove();
     };
 
-    // ----------------- SPINNER NOS BOTÕES -----------------
-    const toggleButtonSpinner = (btn, loading) => {
-        btn.disabled = loading;
-        if (loading) {
-            const spinner = document.createElement("span");
-            spinner.classList.add("spinnerBtn");
-            spinner.style = `
-                display:inline-block; margin-left:6px;
-                border: 2px solid #fff; border-top: 2px solid #4caf50;
-                border-radius: 50%; width:14px; height:14px;
-                animation: spinBtn 0.7s linear infinite;
-            `;
-            btn.appendChild(spinner);
-        } else {
-            const spinner = btn.querySelector(".spinnerBtn");
-            if (spinner) spinner.remove();
-        }
-    };
-
-    const styleBtn = document.createElement("style");
-    styleBtn.innerHTML = `
-    @keyframes spinBtn {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }`;
-    document.head.appendChild(styleBtn);
-
     // ----------------- TOASTS -----------------
     const mostrarToast = (msg, tipo="sucesso") => {
         const toast = document.createElement("div");
@@ -153,10 +126,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (softSkill) payload.softSkill = softSkill;
         if (Object.keys(payload).length === 0) return mostrarToast("Nenhum valor para atualizar", "erro");
 
-        toggleButtonSpinner(salvarBtn, true);
-        criarSpinnerGlobal();
-
         try {
+            criarSpinnerGlobal();
             const res = await fetchAuth(`http://localhost:3000/estudantes/${id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -168,27 +139,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             const index = estudantesOriginais.findIndex(e => e.id == id);
             if (index !== -1) estudantesOriginais[index] = data.estudante;
 
-            renderizarTabela(estudantesOriginais);
+            aplicarFiltros();
             mostrarToast("Alterações salvas com sucesso!");
             esconderModal();
         } catch (err) {
             handleErro("Erro ao salvar alterações", err);
         } finally {
-            toggleButtonSpinner(salvarBtn, false);
             removerSpinnerGlobal();
         }
     });
 
-    // ----------------- FILTRO -----------------
-    filtro.addEventListener("input", () => {
-        const termo = filtro.value.toLowerCase();
-        const filtrados = estudantesOriginais.filter(est =>
-            est.nome.toLowerCase().includes(termo) ||
-            est.turma.toLowerCase().includes(termo) ||
-            (est.softSkill || "").toLowerCase().includes(termo)
-        );
-        renderizarTabela(filtrados);
-    });
+    // ----------------- FILTRO MANUAL -----------------
+    filtro.addEventListener("input", aplicarFiltros);
 
     // ----------------- CARREGAR ESTUDANTES -----------------
     async function carregarEstudantes() {
@@ -198,7 +160,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (!res) return;
             const data = await res.json();
             estudantesOriginais = data.estudantes || data;
-            renderizarTabela(estudantesOriginais);
+            aplicarFiltros();
         } catch (err) {
             handleErro("Erro ao carregar estudantes", err);
         } finally {
@@ -206,9 +168,40 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // ----------------- APLICAR FILTROS (URL + INPUT) -----------------
+    function aplicarFiltros() {
+        let filtrados = [...estudantesOriginais];
+
+        // 🔹 Filtro vindo da URL
+        const params = new URLSearchParams(window.location.search);
+        if (params.has("filtroNota")) {
+            const nota = parseFloat(params.get("filtroNota"));
+            filtrados = filtrados.filter(est => (est.nota ?? 0) >= nota);
+        }
+        if (params.has("filtroNotaMenor7")) {
+            filtrados = filtrados.filter(est => (est.nota ?? 0) < 7);
+        }
+
+        // 🔹 Filtro digitado no campo
+        const termo = filtro.value.toLowerCase();
+        if (termo) {
+            filtrados = filtrados.filter(est =>
+                est.nome.toLowerCase().includes(termo) ||
+                est.turma.toLowerCase().includes(termo) ||
+                (est.softSkill || "").toLowerCase().includes(termo)
+            );
+        }
+
+        renderizarTabela(filtrados);
+    }
+
     // ----------------- RENDERIZAR TABELA -----------------
     function renderizarTabela(estudantes) {
         tabela.innerHTML = "";
+        if (!estudantes.length) {
+            tabela.innerHTML = `<tr><td colspan="7" style="text-align:center;">Nenhum estudante encontrado</td></tr>`;
+            return;
+        }
         estudantes.forEach(est => {
             const tr = document.createElement("tr");
             tr.dataset.id = est.id;
@@ -247,18 +240,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (btn.classList.contains("excluir")) {
             if (!confirm("Tem certeza que deseja excluir este estudante?")) return;
-            toggleButtonSpinner(btn, true);
-            criarSpinnerGlobal();
             try {
+                criarSpinnerGlobal();
                 const res = await fetchAuth(`http://localhost:3000/estudantes/${id}`, { method: "DELETE" });
                 if (!res?.ok) throw new Error("Erro ao excluir estudante");
                 estudantesOriginais = estudantesOriginais.filter(est => est.id != id);
-                renderizarTabela(estudantesOriginais);
+                aplicarFiltros();
                 mostrarToast("Estudante excluído com sucesso!");
             } catch (err) {
                 handleErro("Erro ao excluir estudante", err);
             } finally {
-                toggleButtonSpinner(btn, false);
                 removerSpinnerGlobal();
             }
         }

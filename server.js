@@ -19,6 +19,7 @@ const app = express();
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'segredo_super_secreto';
+const CONFIG_PASSWORD = process.env.CONFIG_PASSWORD || 'admin123';
 
 // -----------------------------
 // CORS - Origens Permitidas
@@ -66,18 +67,29 @@ app.use(morgan('combined', {
 }));
 
 // -----------------------------
-// Middleware JWT
+// Middleware JWT simples
 // -----------------------------
 function autenticarJWT(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ message: 'Token não fornecido' });
+  const authHeader = req.headers.authorization || req.cookies?.token;
+  if (!authHeader) return res.status(401).sendFile(path.join(__dirname, 'public', 'login.html'));
 
   const token = authHeader.split(' ')[1];
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ message: 'Token inválido ou expirado' });
+    if (err) return res.status(403).sendFile(path.join(__dirname, 'public', 'login.html'));
     req.user = user;
     next();
   });
+}
+
+// -----------------------------
+// Middleware para validar senha de Configurações
+// -----------------------------
+function validarConfigSenha(req, res, next) {
+  const senha = req.headers['x-config-senha'] || req.body.configSenha || req.query?.configSenha;
+  if (!senha || senha !== CONFIG_PASSWORD) {
+    return res.status(403).send('Senha de configuração inválida');
+  }
+  next();
 }
 
 // -----------------------------
@@ -93,18 +105,32 @@ app.use('/models', express.static(path.join(__dirname, 'models')));
 app.use('/auth', authRoutes);
 
 // -----------------------------
-// Rotas protegidas - apenas admin
+// Rotas protegidas por JWT
 // -----------------------------
-app.use('/estudantes', AuthMiddleware.authenticate, AuthMiddleware.authorize(['admin']), estudantesRoutes);
+app.get('/cadastro', autenticarJWT, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'cadastro.html'));
+});
 
-// PATCH para atualizar campos específicos (nota e softSkill)
+app.get('/cadastro-usuario', autenticarJWT, validarConfigSenha, (req, res) => {
+  if (req.user.tipo !== 'admin') return res.status(403).send('Acesso negado');
+  res.sendFile(path.join(__dirname, 'public', 'cadastroUsuario.html'));
+});
+
+// -----------------------------
+// Rotas de estudantes - apenas admin
+// -----------------------------
+app.use('/estudantes',
+  AuthMiddleware.authenticate,
+  AuthMiddleware.authorize(['admin']),
+  estudantesRoutes
+);
+
 app.patch('/estudantes/:id/campo',
   AuthMiddleware.authenticate,
   AuthMiddleware.authorize(['admin']),
   async (req, res) => {
     const { id } = req.params;
     const { campo, valor } = req.body;
-
     if (!campo || typeof valor === 'undefined') 
       return res.status(400).json({ message: 'Campo ou valor ausente' });
 
@@ -119,7 +145,9 @@ app.patch('/estudantes/:id/campo',
   }
 );
 
+// -----------------------------
 // Rota de reconhecimento facial simulada
+// -----------------------------
 app.post('/reconhecer', AuthMiddleware.authenticate, (req, res) => {
   logger.info('📸 Requisição de reconhecimento facial recebida');
   setTimeout(() => {
@@ -181,4 +209,4 @@ async function startServer() {
 
 startServer();
 
-module.exports = { autenticarJWT };
+module.exports = { autenticarJWT, validarConfigSenha };

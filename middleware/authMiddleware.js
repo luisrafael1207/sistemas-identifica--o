@@ -16,25 +16,24 @@ class AuthMiddleware {
   static async authenticate(req, res, next) {
     try {
       const authHeader = req.headers.authorization;
+      const token = authHeader?.startsWith('Bearer ')
+        ? authHeader.split(' ')[1]
+        : null;
 
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      if (!token) {
         logger.warn('Usuário não autenticado (token não fornecido)');
-        return res.status(401).json({
-          status: 'error',
+        return AuthMiddleware._handleUnauthorized(req, res, {
           code: ERROR_CODES.NOT_AUTHENTICATED,
           message: 'Token não fornecido',
         });
       }
 
-      const token = authHeader.split(' ')[1];
       let decoded;
-
       try {
         decoded = jwt.verify(token, process.env.JWT_SECRET || 'chave_secreta_jwt');
       } catch (err) {
         logger.warn('Token JWT inválido ou expirado');
-        return res.status(401).json({
-          status: 'error',
+        return AuthMiddleware._handleUnauthorized(req, res, {
           code: ERROR_CODES.NOT_AUTHENTICATED,
           message: 'Token inválido ou expirado',
         });
@@ -47,8 +46,7 @@ class AuthMiddleware {
 
       if (!users || users.length === 0) {
         logger.warn(`Usuário não encontrado ou inativo: ID ${decoded.id}`);
-        return res.status(401).json({
-          status: 'error',
+        return AuthMiddleware._handleUnauthorized(req, res, {
           code: ERROR_CODES.USER_NOT_FOUND,
           message: 'Usuário não encontrado ou conta desativada',
         });
@@ -74,15 +72,16 @@ class AuthMiddleware {
       try {
         if (!req.user) {
           logger.warn('Usuário não autenticado na autorização');
-          return res.status(401).json({
-            status: 'error',
+          return AuthMiddleware._handleUnauthorized(req, res, {
             code: ERROR_CODES.UNAUTHORIZED,
             message: 'Usuário não autenticado',
           });
         }
 
         if (roles.length > 0 && !roles.includes(req.user.tipo)) {
-          logger.warn(`Acesso não autorizado. Role necessária: ${roles.join(', ')}. Usuário: ${req.user.tipo}`);
+          logger.warn(
+            `Acesso não autorizado. Role necessária: ${roles.join(', ')}. Usuário: ${req.user.tipo}`
+          );
           return res.status(403).json({
             status: 'error',
             code: ERROR_CODES.FORBIDDEN,
@@ -101,6 +100,22 @@ class AuthMiddleware {
         });
       }
     };
+  }
+
+  // --- Função auxiliar ---
+  static _handleUnauthorized(req, res, errorData) {
+    const isHtmlRequest =
+      req.headers.accept?.includes('text/html') ||
+      req.originalUrl.endsWith('.html');
+
+    if (isHtmlRequest) {
+      return res.redirect('/login.html');
+    }
+
+    return res.status(401).json({
+      status: 'error',
+      ...errorData,
+    });
   }
 }
 

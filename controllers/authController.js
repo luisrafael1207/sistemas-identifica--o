@@ -1,5 +1,3 @@
-// controllers/authController.js
-
 const db = require('../config/db');
 const { validationResult } = require('express-validator');
 const bcrypt = require('bcrypt');
@@ -8,6 +6,7 @@ const logger = require('../utils/logger');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'chave_secreta_jwt';
 const JWT_EXPIRATION = '24h';
+const CONFIG_PASSWORD = process.env.CONFIG_PASSWORD || 'minhasenhasecreta';
 
 // ----- CADASTRO DE USUÁRIO -----
 exports.cadastrarUsuario = async (req, res) => {
@@ -20,7 +19,6 @@ exports.cadastrarUsuario = async (req, res) => {
   const { nome, email, senha } = req.body;
   let { tipo } = req.body;
 
-  // Se tipo não informado, assume admin
   tipo = tipo || 'admin';
 
   if (tipo !== 'admin' && tipo !== 'professor') {
@@ -29,17 +27,14 @@ exports.cadastrarUsuario = async (req, res) => {
   }
 
   try {
-    // Verifica se email já existe
     const [jaExiste] = await db.execute('SELECT id FROM usuarios WHERE email = ?', [email]);
     if (jaExiste.length > 0) {
       logger.warn(`Email já cadastrado: ${email}`);
       return res.status(409).json({ success: false, message: 'Email já cadastrado' });
     }
 
-    // Criptografa senha
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-    // Insere usuário no banco
     const [resultado] = await db.execute(
       'INSERT INTO usuarios (nome, email, senha, tipo) VALUES (?, ?, ?, ?)',
       [nome, email, senhaCriptografada, tipo]
@@ -136,5 +131,17 @@ exports.checkAuth = async (req, res) => {
   } catch (error) {
     logger.warn('Token inválido ou expirado', { error: error.message });
     return res.status(403).json({ authenticated: false, message: 'Token inválido ou expirado' });
+  }
+};
+
+// ----- VERIFICAÇÃO DE SENHA DE CONFIGURAÇÃO -----
+exports.checkConfigPassword = (req, res) => {
+  const { password } = req.body;
+  if (!password) return res.status(400).json({ success: false, message: "Senha não fornecida" });
+
+  if (password === CONFIG_PASSWORD) {
+    return res.status(200).json({ success: true, message: "Senha correta" });
+  } else {
+    return res.status(401).json({ success: false, message: "Senha incorreta" });
   }
 };

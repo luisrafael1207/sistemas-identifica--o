@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const db = require('../config/db');
-// Importa o objeto de validações com o nome correto
 const { usuarioValidations, handleValidationErrors } = require('../middleware/validationMiddleware');
 
 // ----- LOGIN -----
@@ -19,7 +18,7 @@ router.post('/logout', authController.logout);
 // ----- CADASTRO DE USUÁRIO -----
 router.post(
   '/cadastrar',
-  usuarioValidations.register, // Garante que a função de validação seja a correta
+  usuarioValidations.register,
   handleValidationErrors,
   authController.cadastrarUsuario
 );
@@ -40,6 +39,21 @@ router.get('/verificar-email', async (req, res) => {
   } catch (error) {
     console.error('Erro ao verificar email:', error);
     return res.status(500).json({ exists: false, message: 'Erro no servidor' });
+  }
+});
+
+// ----- VERIFICAR SENHA DE CONFIGURAÇÕES -----
+router.post('/check-config-pass', (req, res) => {
+  const { password } = req.body;
+  if (!password) return res.status(400).json({ message: 'Senha não fornecida' });
+
+  // Senha de configuração definida no .env
+  const CONFIG_PASS = process.env.CONFIG_PASSWORD || 'admin123';
+
+  if (password === CONFIG_PASS) {
+    return res.status(200).json({ message: 'Senha correta' });
+  } else {
+    return res.status(401).json({ message: 'Senha incorreta' });
   }
 });
 

@@ -70,9 +70,32 @@ document.addEventListener("DOMContentLoaded", async () => {
         `;
 
         document.querySelectorAll(".card").forEach(card => {
-            card.addEventListener("click", () => {
+            card.addEventListener("click", async () => {
                 const filter = card.dataset.filter;
-                if (filter === "config") return alert("Abra as configurações no sistema.");
+
+                if (filter === "config") {
+                    const senha = prompt("Digite a senha de configurações:");
+                    if (!senha) return;
+
+                    try {
+                        const res = await fetch("http://localhost:3000/auth/check-config-pass", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ password: senha })
+                        });
+
+                        if (res.ok) {
+                            window.location.href = "cadastroUsuario.html";
+                        } else {
+                            alert("Senha incorreta!");
+                        }
+                    } catch (err) {
+                        console.error("Erro ao validar senha:", err);
+                        alert("Erro ao conectar com o servidor.");
+                    }
+                    return;
+                }
+
                 let url = "listar.html";
                 if (filter === "nota7") url += "?filtroNota=7";
                 if (filter === "notaMenor7") url += "?filtroNotaMenor7=1";

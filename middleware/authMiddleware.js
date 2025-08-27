@@ -12,7 +12,7 @@ const ERROR_CODES = {
 };
 
 class AuthMiddleware {
-  // --- AUTENTICAÇÃO (APENAS JWT) ---
+  // --- AUTENTICAÇÃO (JWT) ---
   static async authenticate(req, res, next) {
     try {
       const authHeader = req.headers.authorization;
@@ -27,8 +27,8 @@ class AuthMiddleware {
       }
 
       const token = authHeader.split(' ')[1];
-
       let decoded;
+
       try {
         decoded = jwt.verify(token, process.env.JWT_SECRET || 'chave_secreta_jwt');
       } catch (err) {
@@ -41,7 +41,7 @@ class AuthMiddleware {
       }
 
       const [users] = await db.query(
-        'SELECT id, email, tipo, ativo FROM usuarios WHERE id = ? AND ativo = 1',
+        'SELECT id, nome, email, tipo, ativo FROM usuarios WHERE id = ? AND ativo = 1',
         [decoded.id]
       );
 
@@ -55,7 +55,7 @@ class AuthMiddleware {
       }
 
       req.user = users[0];
-      logger.info(`Usuário autenticado: ID ${req.user.id}`);
+      logger.info(`Usuário autenticado: ID ${req.user.id}, Tipo: ${req.user.tipo}`);
       next();
     } catch (error) {
       logger.error('Erro na autenticação', { message: error.message, stack: error.stack });

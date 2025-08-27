@@ -20,15 +20,17 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'segredo_super_secreto';
 
-// Origens permitidas para CORS
+// -----------------------------
+// CORS - Origens Permitidas
+// -----------------------------
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : ['http://localhost:3000', 'http://localhost:5500'];
 
-// Segurança HTTP headers
+// -----------------------------
+// Middleware de Segurança
+// -----------------------------
 app.use(helmet());
-
-// Configuração CORS
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
@@ -38,12 +40,12 @@ app.use(cors({
   },
   credentials: true,
 }));
-
-// Parse JSON e urlencoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// -----------------------------
 // Sessão
+// -----------------------------
 app.use(session({
   secret: process.env.SESSION_SECRET || 'seuSegredoMuitoForteAqui',
   resave: false,
@@ -51,7 +53,9 @@ app.use(session({
   cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 },
 }));
 
-// Logger HTTP requests
+// -----------------------------
+// Logger de requisições HTTP
+// -----------------------------
 app.use(morgan('combined', {
   skip: (req, res) => res.statusCode >= 400,
   stream: { write: message => logger.info(message.trim()) },
@@ -61,10 +65,13 @@ app.use(morgan('combined', {
   stream: { write: message => logger.warn(message.trim()) },
 }));
 
-// Middleware JWT opcional
+// -----------------------------
+// Middleware JWT
+// -----------------------------
 function autenticarJWT(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ message: 'Token não fornecido' });
+
   const token = authHeader.split(' ')[1];
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) return res.status(403).json({ message: 'Token inválido ou expirado' });
@@ -73,24 +80,31 @@ function autenticarJWT(req, res, next) {
   });
 }
 
-// Servir arquivos estáticos
+// -----------------------------
+// Arquivos estáticos
+// -----------------------------
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use('/models', express.static(path.join(__dirname, 'models')));
 
+// -----------------------------
 // Rotas públicas
+// -----------------------------
 app.use('/auth', authRoutes);
 
+// -----------------------------
 // Rotas protegidas - apenas admin
+// -----------------------------
 app.use('/estudantes', AuthMiddleware.authenticate, AuthMiddleware.authorize(['admin']), estudantesRoutes);
 
 // PATCH para atualizar campos específicos (nota e softSkill)
-app.patch('/estudantes/:id/campo', 
-  AuthMiddleware.authenticate, 
-  AuthMiddleware.authorize(['admin']), 
+app.patch('/estudantes/:id/campo',
+  AuthMiddleware.authenticate,
+  AuthMiddleware.authorize(['admin']),
   async (req, res) => {
     const { id } = req.params;
     const { campo, valor } = req.body;
+
     if (!campo || typeof valor === 'undefined') 
       return res.status(400).json({ message: 'Campo ou valor ausente' });
 
@@ -117,17 +131,22 @@ app.post('/reconhecer', AuthMiddleware.authenticate, (req, res) => {
   }, 1000);
 });
 
+// -----------------------------
 // Middleware global de erro
+// -----------------------------
 app.use((err, req, res, next) => {
   logger.error(`Erro inesperado: ${err.message}`, { stack: err.stack });
   if (res.headersSent) return next(err);
   res.status(500).json({ error: 'Erro interno no servidor' });
 });
 
+// -----------------------------
 // Inicialização do servidor
+// -----------------------------
 async function startServer() {
   try {
     await testarConexao();
+
     const server = app.listen(PORT, '0.0.0.0', () => {
       logger.info(`
       ███████╗███████╗██████╗ ██╗   ██╗███████╗██████╗ 
@@ -150,6 +169,7 @@ async function startServer() {
         process.exit(0);
       });
     }
+
     process.on('SIGTERM', shutdown);
     process.on('SIGINT', shutdown);
 

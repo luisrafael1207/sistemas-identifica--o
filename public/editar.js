@@ -1,28 +1,18 @@
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token');
     if (!token) {
+        alert("Você precisa estar logado.");
         window.location.href = 'login.html';
         return;
     }
 
     const urlParams = new URLSearchParams(window.location.search);
-    const alunoId = urlParams.get('id');
+    const estudanteId = urlParams.get('id');
+    if (!estudanteId) { alert("ID do estudante não encontrado."); return; }
 
-    if (!alunoId) {
-        alert('ID do aluno não encontrado.');
-        window.location.href = 'listar.html';
-        return;
-    }
-
-    // Elementos
-    const nomeInput = document.getElementById('nome');
-    const emailInput = document.getElementById('email');
-    const notaInput = document.getElementById('nota');
-    const softSkillsSelect = document.getElementById('softSkills');
-    const salvarBtn = document.getElementById('salvarBtn');
-    const mensagem = document.getElementById('mensagem');
-    const spinner = document.getElementById('spinner');
-
+    // ELEMENTOS
+    const logoutBtn = document.getElementById('logoutBtn');
+    const editarForm = document.getElementById('editarForm');
     const video = document.getElementById('cameraStream');
     const preview = document.getElementById('preview');
     const abrirCamera = document.getElementById('abrirCamera');
@@ -34,181 +24,140 @@ document.addEventListener('DOMContentLoaded', async () => {
     let stream = null;
     let fotoBlob = null;
 
-    const softSkills = [
-        "Trabalho em Equipe",
-        "Comunicação",
-        "Liderança",
-        "Criatividade",
-        "Responsabilidade",
-        "Flexibilidade",
-        "Motivação"
-    ];
-
-    // Atualiza os botões da câmera
-    const atualizarBotoes = (estado) => {
-        switch (estado) {
-            case 'inicial':
-                abrirCamera.style.display = 'inline-block';
-                capturarFoto.style.display = 'none';
-                pararCamera.style.display = 'none';
-                resetarFoto.style.display = 'none';
-                video.style.display = 'none';
-                preview.style.display = 'none';
-                break;
-            case 'cameraAberta':
-                abrirCamera.style.display = 'none';
-                capturarFoto.style.display = 'inline-block';
-                pararCamera.style.display = 'inline-block';
-                resetarFoto.style.display = 'none';
-                video.style.display = 'block';
-                preview.style.display = 'none';
-                break;
-            case 'fotoCapturada':
-                abrirCamera.style.display = 'inline-block';
-                capturarFoto.style.display = 'none';
-                pararCamera.style.display = 'none';
-                resetarFoto.style.display = 'inline-block';
-                video.style.display = 'none';
-                preview.style.display = 'block';
-                break;
-        }
+    const mostrarToast = (msg, tipo="sucesso") => {
+        const toast = document.createElement("div");
+        toast.textContent = msg;
+        toast.style = `
+            position: fixed; bottom:20px; right:20px;
+            background: ${tipo==="erro"?"#e74c3c":"#4caf50"};
+            color:white; padding:12px 20px; border-radius:5px;
+            box-shadow:0 4px 10px rgba(0,0,0,0.3); z-index:10000;
+            opacity:0; transition:opacity 0.5s;
+        `;
+        document.body.appendChild(toast);
+        requestAnimationFrame(()=>toast.style.opacity="1");
+        setTimeout(()=>{ toast.style.opacity="0"; setTimeout(()=>toast.remove(),500); },3000);
     };
 
+    const criarSpinnerGlobal = () => {
+        if (!document.getElementById("spinnerGlobal")) {
+            const spinner = document.createElement("div");
+            spinner.id = "spinnerGlobal";
+            spinner.style = `
+                position: fixed; top:0; left:0; width:100%; height:100%;
+                background: rgba(0,0,0,0.4); display:flex;
+                justify-content:center; align-items:center; z-index:9999;
+            `;
+            spinner.innerHTML = `<div style="
+                border:4px solid #fff; border-top:4px solid #4caf50;
+                border-radius:50%; width:50px; height:50px;
+                animation: spinGlobal 1s linear infinite;"></div>`;
+            document.body.appendChild(spinner);
+            const style = document.createElement("style");
+            style.innerHTML = `@keyframes spinGlobal {0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}`;
+            document.head.appendChild(style);
+        }
+    };
+    const removerSpinnerGlobal = () => { const s = document.getElementById("spinnerGlobal"); if(s)s.remove(); };
+
+    const atualizarBotoes = (estado) => {
+        abrirCamera.style.display = estado==='cameraAberta'||estado==='inicial'?'inline-block':'none';
+        capturarFoto.style.display = estado==='cameraAberta'?'inline-block':'none';
+        pararCamera.style.display = estado==='cameraAberta'?'inline-block':'none';
+        resetarFoto.style.display = estado==='fotoCapturada'?'inline-block':'none';
+        video.style.display = estado==='cameraAberta'?'block':'none';
+        preview.style.display = estado==='fotoCapturada'||preview.src?'block':'none';
+    };
     atualizarBotoes('inicial');
 
-    // --- Carregar dados do aluno ---
-    try {
-        const res = await fetch(`http://localhost:3000/estudantes/${alunoId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error('Erro ao buscar aluno');
-        const aluno = await res.json();
-
-        nomeInput.value = aluno.nome || '';
-        emailInput.value = aluno.email || '';
-        notaInput.value = aluno.nota ?? '';
-        softSkillsSelect.value = aluno.softSkill || '';
-        if (aluno.foto) {
-            preview.src = aluno.foto;
-            preview.style.display = 'block';
-        }
-    } catch (err) {
-        console.error(err);
-        alert('Erro ao carregar os dados do aluno.');
-        window.location.href = 'listar.html';
-        return;
-    }
-
-    // --- Abrir câmera ---
-    abrirCamera.addEventListener('click', async () => {
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            video.srcObject = stream;
-            atualizarBotoes('cameraAberta');
-        } catch (err) {
-            console.error('Erro ao acessar a câmera:', err);
-            alert('Não foi possível acessar a câmera.');
+    // CAMERA
+    abrirCamera.addEventListener('click', async ()=>{
+        if(!stream){ 
+            stream = await navigator.mediaDevices.getUserMedia({video:true}); 
+            video.srcObject = stream; 
+            atualizarBotoes('cameraAberta'); 
         }
     });
-
-    // --- Capturar foto ---
-    capturarFoto.addEventListener('click', () => {
-        if (!stream) return;
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-
-        canvas.toBlob((blob) => {
-            fotoBlob = blob;
-            preview.src = URL.createObjectURL(blob);
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-                video.srcObject = null;
-            }
-            atualizarBotoes('fotoCapturada');
+    capturarFoto.addEventListener('click', ()=>{
+        if(!stream){ mostrarToast("Abra a câmera antes!","erro"); return; }
+        const canvas = document.createElement('canvas'); 
+        canvas.width = video.videoWidth || 320; 
+        canvas.height = video.videoHeight || 240;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(blob => {
+            fotoBlob = blob; 
+            preview.src = URL.createObjectURL(blob); 
+            stream.getTracks().forEach(t => t.stop()); 
+            stream = null; 
+            video.srcObject = null; 
+            atualizarBotoes('fotoCapturada'); 
         }, 'image/jpeg');
     });
-
-    // --- Parar câmera ---
-    pararCamera.addEventListener('click', () => {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            stream = null;
-        }
-        video.srcObject = null;
-        atualizarBotoes('inicial');
+    pararCamera.addEventListener('click', ()=>{ 
+        if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } 
+        video.srcObject = null; 
+        atualizarBotoes('inicial'); 
     });
-
-    // --- Resetar foto ---
-    resetarFoto.addEventListener('click', () => {
-        fotoBlob = null;
-        preview.src = '';
-        fotoInput.value = '';
-        atualizarBotoes('inicial');
+    resetarFoto.addEventListener('click', ()=>{ 
+        fotoBlob=null; preview.src=''; fotoInput.value=''; 
+        atualizarBotoes('inicial'); 
     });
-
-    // --- Seleção de arquivo ---
-    fotoInput.addEventListener('change', () => {
-        if (fotoInput.files.length > 0) {
-            fotoBlob = fotoInput.files[0];
-            preview.src = URL.createObjectURL(fotoBlob);
-            preview.style.display = 'block';
-            atualizarBotoes('fotoCapturada');
+    fotoInput.addEventListener('change', ()=>{
+        if(fotoInput.files.length>0){ 
+            fotoBlob = fotoInput.files[0]; 
+            preview.src = URL.createObjectURL(fotoBlob); 
+            preview.style.display='block'; video.style.display='none'; 
+            atualizarBotoes('fotoCapturada'); 
         }
     });
 
-    // --- Salvar alterações ---
-    salvarBtn.addEventListener('click', async () => {
-        const nome = nomeInput.value.trim();
-        const email = emailInput.value.trim();
-        const nota = notaInput.value.trim();
-        const softSkill = softSkillsSelect.value;
-
-        if (!nome || !email) {
-            mensagem.textContent = 'Nome e email são obrigatórios.';
-            mensagem.style.color = 'red';
-            return;
-        }
-
-        if (nota !== '' && (isNaN(nota) || nota < 0 || nota > 10)) {
-            mensagem.textContent = 'A nota deve ser entre 0 e 10.';
-            mensagem.style.color = 'red';
-            return;
-        }
-
-        salvarBtn.disabled = true;
-        spinner.style.display = 'inline-block';
-        mensagem.textContent = '';
-
-        try {
-            const formData = new FormData();
-            formData.append('nome', nome);
-            formData.append('email', email);
-            formData.append('nota', nota);
-            formData.append('softSkill', softSkill);
-            if (fotoBlob) formData.append('foto', fotoBlob, 'foto.jpg');
-
-            const res = await fetch(`http://localhost:3000/estudantes/${alunoId}`, {
-                method: 'PUT',
-                headers: { Authorization: `Bearer ${token}` },
-                body: formData
-            });
-
+    // CARREGAR ESTUDANTE
+    const carregarEstudante = async ()=>{
+        criarSpinnerGlobal();
+        try{
+            const res = await fetch(`http://localhost:3000/estudantes/${estudanteId}`, { headers:{ Authorization:`Bearer ${token}` } });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message || 'Erro ao salvar alterações');
+            if(!res.ok) throw new Error(data.message || "Erro ao buscar estudante");
+            document.getElementById('nome').value = data.nome || '';
+            document.getElementById('email').value = data.email || '';
+            document.getElementById('turma').value = data.turma || '';
+            document.getElementById('telefone').value = data.telefone || '';
+            if(data.fotoUrl){ 
+                preview.src = `${data.fotoUrl}?t=${new Date().getTime()}`; 
+                preview.style.display='block'; 
+            }
+        }catch(err){ mostrarToast(err.message,"erro"); }
+        finally{ removerSpinnerGlobal(); }
+    };
+    carregarEstudante();
 
-            mensagem.textContent = 'Alterações salvas com sucesso!';
-            mensagem.style.color = 'lightgreen';
-            setTimeout(() => window.location.href = 'listar.html', 1500);
-        } catch (err) {
-            console.error(err);
-            mensagem.textContent = err.message || 'Erro ao salvar alterações';
-            mensagem.style.color = 'red';
-        } finally {
-            salvarBtn.disabled = false;
-            spinner.style.display = 'none';
-        }
+    // SUBMIT FORM
+    editarForm.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const btn = editarForm.querySelector('button[type="submit"]'); 
+        btn.disabled = true;
+        criarSpinnerGlobal();
+        const formData = new FormData(editarForm); 
+        if(fotoBlob) formData.set('foto', fotoBlob, 'foto.jpg');
+
+        try{
+            const res = await fetch(`http://localhost:3000/estudantes/${estudanteId}`, { 
+                method: 'PUT', 
+                headers: { Authorization:`Bearer ${token}` }, 
+                body: formData 
+            });
+            const data = await res.json();
+            if(!res.ok) throw new Error(data.message || "Erro ao atualizar estudante");
+            mostrarToast("Estudante atualizado com sucesso!");
+            // Redirecionamento automático
+            setTimeout(()=> window.location.href='listar.html', 1500);
+        }catch(err){ mostrarToast(err.message,"erro"); }
+        finally{ btn.disabled=false; removerSpinnerGlobal(); }
+    });
+
+    // LOGOUT
+    logoutBtn.addEventListener('click', ()=>{
+        localStorage.removeItem('token');
+        window.location.href='login.html';
     });
 });

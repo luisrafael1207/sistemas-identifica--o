@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loginButton.setAttribute('aria-busy', loading);
     };
 
+    const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
+
     [emailInput, senhaInput].forEach(input => {
         input.addEventListener('input', () => {
             mensagemErro.textContent = '';
@@ -41,6 +43,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        if (!validateEmail(email)) {
+            mensagemErro.textContent = 'Insira um e-mail válido.';
+            emailInput.style.borderColor = 'red';
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -49,19 +57,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, senha })
             });
+
             const data = await response.json();
+
             if (!response.ok) throw new Error(data.message || 'Erro no login');
 
-            // Salva token único
+            // Salva token e informações do usuário
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
 
-            window.location.href = data.redirectTo || 'listar.html';
+            // Redireciona
+            window.location.href = data.redirectTo || 'dashboard.html';
 
         } catch (error) {
             mensagemErro.textContent = error.message || 'Erro desconhecido';
             senhaInput.value = '';
             senhaInput.style.borderColor = 'red';
+            console.error("Erro no login:", error);
         } finally {
             setLoading(false);
         }
@@ -79,12 +91,21 @@ async function fetchAuth(url, options = {}) {
     if (token) headers['Authorization'] = `Bearer ${token}`;
     options.headers = headers;
 
-    const response = await fetch(url, options);
-    if (response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = 'login.html';
-        throw new Error('Não autenticado');
+    try {
+        const response = await fetch(url, options);
+
+        if (response.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+            throw new Error('Não autenticado');
+        }
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        console.error("Erro na requisição autenticada:", error);
+        throw error;
     }
-    return response;
 }

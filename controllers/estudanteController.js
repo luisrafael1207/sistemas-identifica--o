@@ -11,8 +11,8 @@ async function listar(req, res) {
     logger.info('Iniciando listagem de estudantes', { user: req.user?.id || 'anônimo' });
 
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
+    const limit = req.query.limit ? parseInt(req.query.limit) : null; // null = retorna todos
+    const offset = limit ? (page - 1) * limit : 0;
     const filtro = req.query.filtro ? `%${req.query.filtro.toLowerCase()}%` : null;
 
     let sql = 'SELECT * FROM estudantes';
@@ -34,18 +34,21 @@ async function listar(req, res) {
       }
     }
 
-    sql += ` ORDER BY nome ASC LIMIT ? OFFSET ?`;
-    params.push(limit, offset);
+    sql += ' ORDER BY nome ASC';
+    if (limit) {
+      sql += ' LIMIT ? OFFSET ?';
+      params.push(limit, offset);
+    }
 
     const [rows] = await db.query(sql, params);
     const [countResult] = await db.query(countSql, countParams);
     const total = countResult[0]?.total || 0;
 
     res.json({
-      page,
-      limit,
+      page: limit ? page : 1,
+      limit: limit || total,
       total,
-      totalPages: Math.ceil(total / limit),
+      totalPages: limit ? Math.ceil(total / limit) : 1,
       estudantes: rows
     });
   } catch (error) {
@@ -164,7 +167,6 @@ async function atualizarCampo(req, res) {
       }
     }
 
-    // Usar parâmetro preparado para evitar SQL injection
     const sql = `UPDATE estudantes SET ${campo} = ? WHERE id = ?`;
     await db.execute(sql, [valor, id]);
 

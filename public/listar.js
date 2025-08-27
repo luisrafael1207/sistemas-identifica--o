@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const detectarBtn = document.getElementById("detectarBtn");
     const desligarCamera = document.getElementById("desligarCamera");
     const btnSair = document.getElementById("btnSair");
-    const btnVoltar = document.getElementById("btnVoltar");
+    const btnCadastrar = document.getElementById("btnCadastrar");
     const modal = document.getElementById("modal");
     const closeModal = document.getElementById("closeModal");
     const notaInput = document.getElementById("notaInput");
@@ -17,8 +17,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     let estudantesOriginais = [];
     let stream = null;
 
+    // ----------------- TOKEN -----------------
     const getToken = () => localStorage.getItem("token");
 
+    // ----------------- FETCH AUTENTICADO -----------------
     const fetchAuth = async (url, options = {}) => {
         if (!options.headers) options.headers = {};
         const token = getToken();
@@ -28,30 +30,87 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             return res;
         } catch (err) {
-            console.error("Erro no fetchAuth:", err);
+            handleErro("Erro no fetchAuth", err);
             return null;
         }
     };
 
-    const criarSpinner = () => {
-        const spinner = document.createElement("span");
-        spinner.classList.add("spinner");
-        spinner.style.marginLeft = "8px";
-        spinner.innerHTML = "⏳";
-        return spinner;
+    // ----------------- SPINNER GLOBAL -----------------
+    const criarSpinnerGlobal = () => {
+        if (!document.getElementById("spinnerGlobal")) {
+            const spinner = document.createElement("div");
+            spinner.id = "spinnerGlobal";
+            spinner.style = `
+                position: fixed; top:0; left:0; width:100%; height:100%;
+                background: rgba(0,0,0,0.4); display:flex;
+                justify-content:center; align-items:center; z-index:9999;
+            `;
+            spinner.innerHTML = `<div style="
+                border:4px solid #fff; border-top:4px solid #4caf50;
+                border-radius:50%; width:50px; height:50px;
+                animation: spinGlobal 1s linear infinite;"></div>`;
+            document.body.appendChild(spinner);
+            const style = document.createElement("style");
+            style.innerHTML = `
+                @keyframes spinGlobal {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }`;
+            document.head.appendChild(style);
+        }
+    };
+    const removerSpinnerGlobal = () => {
+        const spinner = document.getElementById("spinnerGlobal");
+        if (spinner) spinner.remove();
     };
 
+    // ----------------- SPINNER NOS BOTÕES -----------------
     const toggleButtonSpinner = (btn, loading) => {
         btn.disabled = loading;
         if (loading) {
-            const spinner = criarSpinner();
+            const spinner = document.createElement("span");
+            spinner.classList.add("spinnerBtn");
+            spinner.style = `
+                display:inline-block; margin-left:6px;
+                border: 2px solid #fff; border-top: 2px solid #4caf50;
+                border-radius: 50%; width:14px; height:14px;
+                animation: spinBtn 0.7s linear infinite;
+            `;
             btn.appendChild(spinner);
         } else {
-            const spinner = btn.querySelector(".spinner");
+            const spinner = btn.querySelector(".spinnerBtn");
             if (spinner) spinner.remove();
         }
     };
 
+    const styleBtn = document.createElement("style");
+    styleBtn.innerHTML = `
+    @keyframes spinBtn {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }`;
+    document.head.appendChild(styleBtn);
+
+    // ----------------- TOASTS -----------------
+    const mostrarToast = (msg, tipo="sucesso") => {
+        const toast = document.createElement("div");
+        toast.textContent = msg;
+        toast.style = `
+            position: fixed; bottom:20px; right:20px;
+            background: ${tipo === "erro" ? "#e74c3c" : "#4caf50"};
+            color:white; padding:12px 20px; border-radius:5px;
+            box-shadow:0 4px 10px rgba(0,0,0,0.3); z-index:10000;
+            opacity:0; transition:opacity 0.5s;
+        `;
+        document.body.appendChild(toast);
+        requestAnimationFrame(()=>toast.style.opacity="1");
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            setTimeout(()=>toast.remove(), 500);
+        }, 3000);
+    };
+
+    // ----------------- MODAL -----------------
     const mostrarModal = () => modal.style.display = "flex";
     const esconderModal = () => {
         modal.style.display = "none";
@@ -60,10 +119,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         notaInput.value = "";
         softSkillSelect.value = "";
         salvarBtn.disabled = false;
-        const spinner = salvarBtn.querySelector(".spinner");
+        const spinner = salvarBtn.querySelector(".spinnerBtn");
         if (spinner) spinner.remove();
     };
 
+    // ----------------- LOGOUT -----------------
     const logout = () => {
         localStorage.removeItem("token");
         window.location.href = "login.html";
@@ -71,31 +131,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const handleErro = (msg, err) => {
         console.error(msg, err);
-        alert(msg + (err?.message ? `: ${err.message}` : ""));
+        mostrarToast(msg + (err?.message ? `: ${err.message}` : ""), "erro");
     };
 
-    // Navegação
-    btnVoltar.addEventListener("click", () => window.location.href = "cadastro.html");
+    // ----------------- EVENTOS -----------------
+    btnCadastrar.addEventListener("click", () => window.location.href = "cadastro.html");
     btnSair.addEventListener("click", async () => {
         try { await fetch("http://localhost:3000/auth/logout", { method: "POST", credentials: "include" }); } catch {}
         logout();
     });
     closeModal.addEventListener("click", esconderModal);
 
-    // Salvar alterações (nota + soft skill)
+    // ----------------- SALVAR ALTERAÇÕES -----------------
     salvarBtn.addEventListener("click", async () => {
         if (!estudanteSelecionado) return;
         const id = estudanteSelecionado;
         const nota = notaInput.value.trim();
         const softSkill = softSkillSelect.value;
-
         const payload = {};
         if (nota !== "") payload.nota = parseFloat(nota);
         if (softSkill) payload.softSkill = softSkill;
-
-        if (Object.keys(payload).length === 0) return alert("Nenhum valor para atualizar");
+        if (Object.keys(payload).length === 0) return mostrarToast("Nenhum valor para atualizar", "erro");
 
         toggleButtonSpinner(salvarBtn, true);
+        criarSpinnerGlobal();
 
         try {
             const res = await fetchAuth(`http://localhost:3000/estudantes/${id}`, {
@@ -106,20 +165,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (!res?.ok) throw new Error("Erro ao atualizar estudante");
 
             const data = await res.json();
-            const estudanteAtualizado = data.estudante;
             const index = estudantesOriginais.findIndex(e => e.id == id);
-            if (index !== -1) estudantesOriginais[index] = estudanteAtualizado;
+            if (index !== -1) estudantesOriginais[index] = data.estudante;
 
             renderizarTabela(estudantesOriginais);
-            alert("Alterações salvas com sucesso!");
+            mostrarToast("Alterações salvas com sucesso!");
             esconderModal();
         } catch (err) {
             handleErro("Erro ao salvar alterações", err);
+        } finally {
             toggleButtonSpinner(salvarBtn, false);
+            removerSpinnerGlobal();
         }
     });
 
-    // Filtro
+    // ----------------- FILTRO -----------------
     filtro.addEventListener("input", () => {
         const termo = filtro.value.toLowerCase();
         const filtrados = estudantesOriginais.filter(est =>
@@ -130,8 +190,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderizarTabela(filtrados);
     });
 
-    // Carregar estudantes
+    // ----------------- CARREGAR ESTUDANTES -----------------
     async function carregarEstudantes() {
+        criarSpinnerGlobal();
         try {
             const res = await fetchAuth("http://localhost:3000/estudantes");
             if (!res) return;
@@ -140,17 +201,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             renderizarTabela(estudantesOriginais);
         } catch (err) {
             handleErro("Erro ao carregar estudantes", err);
+        } finally {
+            removerSpinnerGlobal();
         }
     }
 
-    // Renderizar tabela
+    // ----------------- RENDERIZAR TABELA -----------------
     function renderizarTabela(estudantes) {
         tabela.innerHTML = "";
         estudantes.forEach(est => {
             const tr = document.createElement("tr");
             tr.dataset.id = est.id;
             tr.innerHTML = `
-                <td><img src="${est.foto || '/uploads/default.jpg'}" alt="foto" width="50"></td>
+                <td><img src="${est.foto || '/uploads/default.jpg'}" alt="foto"></td>
                 <td>${est.nome}</td>
                 <td>${est.turma}</td>
                 <td>${est.email || '-'}</td>
@@ -164,7 +227,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Delegação de eventos para editar/excluir
+    // ----------------- EDITAR / EXCLUIR -----------------
     tabela.addEventListener("click", async (e) => {
         const btn = e.target.closest("button");
         if (!btn) return;
@@ -185,16 +248,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (btn.classList.contains("excluir")) {
             if (!confirm("Tem certeza que deseja excluir este estudante?")) return;
             toggleButtonSpinner(btn, true);
+            criarSpinnerGlobal();
             try {
                 const res = await fetchAuth(`http://localhost:3000/estudantes/${id}`, { method: "DELETE" });
                 if (!res?.ok) throw new Error("Erro ao excluir estudante");
                 estudantesOriginais = estudantesOriginais.filter(est => est.id != id);
                 renderizarTabela(estudantesOriginais);
-                alert("Estudante excluído com sucesso!");
+                mostrarToast("Estudante excluído com sucesso!");
             } catch (err) {
                 handleErro("Erro ao excluir estudante", err);
             } finally {
                 toggleButtonSpinner(btn, false);
+                removerSpinnerGlobal();
             }
         }
     });
@@ -210,23 +275,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             handleErro("Erro ao acessar a câmera", err);
         }
     };
-
     const pararCamera = () => {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            stream = null;
-        }
+        if (stream) stream.getTracks().forEach(track => track.stop());
         video.srcObject = null;
         detectarBtn.style.display = "inline-block";
         desligarCamera.style.display = "none";
     };
-
     detectarBtn.addEventListener("click", iniciarCamera);
     desligarCamera.addEventListener("click", pararCamera);
 
-    // Inicialização
+    // ----------------- INICIALIZAÇÃO -----------------
     if (!getToken()) {
-        alert("Faça login para acessar esta página.");
+        mostrarToast("Faça login para acessar esta página.", "erro");
         logout();
     } else {
         await carregarEstudantes();

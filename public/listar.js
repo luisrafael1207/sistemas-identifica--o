@@ -28,6 +28,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     "Liderança": "Capacidade de guiar, motivar e inspirar pessoas."
   };
 
+  // ----------------- LER PARÂMETROS DE FILTRO -----------------
+  const params = new URLSearchParams(window.location.search);
+  const filtroNota = params.get("filtroNota");          // Notas ≥ 7
+  const filtroNotaMenor7 = params.get("filtroNotaMenor7"); // Notas < 7
+
   // ----------------- TOKEN -----------------
   const getToken = () => localStorage.getItem("token");
 
@@ -177,6 +182,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   function aplicarFiltros() {
     let filtrados = [...estudantesOriginais];
     const termo = filtro.value.toLowerCase();
+
+    // Filtro por pesquisa
     if (termo) {
       filtrados = filtrados.filter(est =>
         est.nome.toLowerCase().includes(termo) ||
@@ -184,6 +191,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         (est.softSkill || "").toLowerCase().includes(termo)
       );
     }
+
+    // ----------------- FILTRO AUTOMÁTICO POR NOTA -----------------
+    if (filtroNota) {
+      filtrados = filtrados.filter(est => Number(est.nota) >= 7);
+    }
+    if (filtroNotaMenor7) {
+      filtrados = filtrados.filter(est => Number(est.nota) < 7);
+    }
+
     renderizarTabela(filtrados);
   }
 

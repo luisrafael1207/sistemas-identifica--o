@@ -72,6 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             ${criarCard("fas fa-cogs", "Configurações", "Gerencie usuários e permissões", "config")}
         `;
 
+        // ----------------- EVENTO DE CLIQUE NOS CARDS -----------------
         document.querySelectorAll(".card").forEach(card => {
             card.addEventListener("click", async () => {
                 const filter = card.dataset.filter;
@@ -104,6 +105,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     return;
                 }
 
+                // ----------------- REDIRECIONAMENTO COM FILTRO -----------------
                 let url = "listar.html";
                 if (filter === "nota7") url += "?filtroNota=7";
                 if (filter === "notaMenor7") url += "?filtroNotaMenor7=1";

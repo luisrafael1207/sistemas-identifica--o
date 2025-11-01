@@ -1,4 +1,3 @@
-// controllers/estudanteController.js
 const db = require('../config/db');
 const fs = require('fs');
 const path = require('path');
@@ -11,7 +10,7 @@ async function listar(req, res) {
     logger.info('Iniciando listagem de estudantes', { user: req.user?.id || 'anônimo' });
 
     const page = parseInt(req.query.page) || 1;
-    const limit = req.query.limit ? parseInt(req.query.limit) : null; // null = retorna todos
+    const limit = req.query.limit ? parseInt(req.query.limit) : null;
     const offset = limit ? (page - 1) * limit : 0;
     const filtro = req.query.filtro ? `%${req.query.filtro.toLowerCase()}%` : null;
 
@@ -116,6 +115,33 @@ async function editar(req, res) {
   } catch (error) {
     logger.error('Erro ao editar estudante', { error: error.message, stack: error.stack });
     res.status(500).json({ message: 'Erro ao editar estudante' });
+  }
+}
+
+// --- ATUALIZAR FOTO DO ESTUDANTE ---
+async function atualizarFoto(req, res) {
+  try {
+    const { id } = req.params;
+    if (!req.file) return res.status(400).json({ message: 'Nenhuma foto enviada' });
+
+    const novaFoto = `/uploads/${req.file.filename}`;
+    const [antigo] = await db.execute('SELECT foto FROM estudantes WHERE id = ?', [id]);
+    const nomeFotoAntiga = antigo[0]?.foto;
+
+    if (nomeFotoAntiga && nomeFotoAntiga !== '/uploads/default.jpg') {
+      const caminhoAntigo = path.join(__dirname, '../public', nomeFotoAntiga);
+      fs.unlink(caminhoAntigo, err => {
+        if (err) logger.warn('Falha ao remover foto antiga', { err, estudanteId: id });
+      });
+    }
+
+    await db.execute('UPDATE estudantes SET foto = ? WHERE id = ?', [novaFoto, id]);
+    const [rows] = await db.execute('SELECT * FROM estudantes WHERE id = ?', [id]);
+
+    res.json({ success: true, estudante: rows[0], message: 'Foto atualizada com sucesso' });
+  } catch (error) {
+    logger.error('Erro ao atualizar foto do estudante', { error: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Erro ao atualizar foto do estudante' });
   }
 }
 
@@ -235,5 +261,6 @@ module.exports = {
   editar,
   deletar,
   atualizarCampo,
-  atualizarEstudante
+  atualizarEstudante,
+  atualizarFoto // <--- exportando nova função
 };

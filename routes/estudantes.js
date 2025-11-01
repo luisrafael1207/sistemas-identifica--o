@@ -78,6 +78,18 @@ router.put(
   estudantesController.editar
 );
 
+// ✅ Atualizar foto do estudante
+router.patch(
+  '/:id/foto',
+  (req, res, next) => upload.single('foto')(req, res, err => {
+    if (err) return res.status(400).json({ message: err.message });
+    next();
+  }),
+  estudanteValidations.idParam,
+  handleValidationErrors,
+  estudantesController.atualizarFoto
+);
+
 // ✅ Deletar estudante
 router.delete(
   '/:id',

@@ -104,6 +104,8 @@
     }
     .editar { background-color: #3498db; }
     .excluir { background-color: #e74c3c; }
+
+    /* MODAL */
     .modal {
       display: none;
       position: fixed;
@@ -178,6 +180,16 @@
     @keyframes toastIn {
       to { opacity: 1; transform: translateY(0); }
     }
+    #softSkillDescricao {
+      font-size: 14px;
+      color: #bdc3c7;
+      margin: 5px 0 5px 0;
+    }
+    #softSkillDescricaoDinamica {
+      font-size: 14px;
+      font-weight: bold;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -213,11 +225,15 @@
     </table>
   </div>
 
-  <!-- MODAL DE ATUALIZAÇÃO -->
+  <!-- MODAL DE ESTUDANTE -->
   <div id="modal" class="modal">
     <div class="modal-content">
       <span class="close-button" id="closeModal">&times;</span>
-      <h2>Atualizar Estudante</h2>
+      <h2 id="modalTitulo">Modal Estudante</h2>
+
+      <div style="text-align: center; margin-bottom: 15px;">
+        <img id="fotoAtual" src="/uploads/default.jpg" alt="Foto Estudante" style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid #4caf50;">
+      </div>
 
       <div id="infoEstudante" style="margin: 10px 0; font-size: 14px;"></div>
 
@@ -225,6 +241,9 @@
       <input type="number" id="notaInput" min="0" max="10" step="0.1" />
 
       <label for="softSkillSelect">Soft Skill</label>
+      <div id="softSkillDescricao">
+        Soft Skill é uma habilidade interpessoal e comportamental que descreve como a pessoa interage com os outros e lida com o trabalho.
+      </div>
       <select id="softSkillSelect">
         <option value="">-- Selecione --</option>
         <option value="Comunicação">Comunicação</option>
@@ -234,14 +253,13 @@
         <option value="Flexibilidade">Flexibilidade</option>
         <option value="Liderança">Liderança</option>
       </select>
+      <div id="softSkillDescricaoDinamica"></div>
 
-      <button id="salvarAlteracoes">Salvar</button>
+      <button id="salvarAlteracoes">Salvar Alterações</button>
     </div>
   </div>
 
-  <!-- CONTAINER PARA TOASTS -->
   <div id="toastContainer"></div>
-
   <script src="listar.js"></script>
 </body>
 </html>

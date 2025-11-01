@@ -91,17 +91,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                             if (res.ok) {
                                 sessionStorage.setItem('acessoConfig', 'true');
+                                window.location.href = "cadastroUsuario.html"; // Redireciona após senha correta
                             } else {
                                 alert("Senha incorreta!");
-                                return;
                             }
                         } catch (err) {
                             console.error("Erro ao validar senha:", err);
                             alert("Erro ao conectar com o servidor.");
-                            return;
                         }
+                    } else {
+                        // Já validou senha, redireciona direto
+                        window.location.href = "cadastroUsuario.html";
                     }
-                    window.location.href = "cadastroUsuario.html";
                     return;
                 }
 

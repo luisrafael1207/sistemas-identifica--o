@@ -50,5 +50,15 @@ services:
       - "8081:80"
     restart: always
 
+  noip:
+    image: ghcr.io/noipcom/noip-duc:3.3.0
+    container_name: noip-duc
+    restart: always
+    environment:
+      NOIP_USERNAME: "${NOIP_USERNAME}"
+      NOIP_PASSWORD: "${NOIP_PASSWORD}"
+      NOIP_HOSTNAMES: "${NOIP_HOSTNAMES}"
+      NOIP_INTERVAL: "300"
+
 volumes:
   mysql_data:

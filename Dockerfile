@@ -1,26 +1,22 @@
-# Dockerfile
-FROM node:18-alpine
+FROM node:20-alpine
 
-# diretório da app
+# Cria diretório do app
 WORKDIR /usr/src/app
 
-# copiar package.json e package-lock (se houver) primeiro pra cache de npm install
+# Instala mysql-client (para mysqladmin)
+RUN apk add --no-cache mysql-client
+
+# Copia dependências
 COPY package*.json ./
 
-# instalar dependências
-RUN npm install --production
+# Instala dependências
+RUN npm install
 
-# copiar o resto do código
+# Copia todo o resto do código
 COPY . .
 
-# rebuild caso você use typescript ou build step (descomente se precisar)
-# RUN npm run build
-
-# expõe a porta da aplicação
+# Expõe a porta do servidor
 EXPOSE 3000
 
-# variáveis de ambiente por runtime (valores vem do docker-compose/.env)
-ENV PORT=3000
-
-# comando padrão
-CMD ["node", "server.js"]
+# Comando para subir a aplicação
+CMD ["npm", "start"]

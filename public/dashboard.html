@@ -98,7 +98,7 @@
         if (!senha) return;
 
         try {
-          const res = await fetch("http://localhost:3000/auth/check-config-pass", {
+          const res = await fetch("/auth/check-config-pass", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ password: senha })

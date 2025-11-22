@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData(cadastroForm);
             if (fotoBlob) formData.set('foto', fotoBlob, 'foto.jpg');
 
-            const res = await fetch('http://localhost:3000/estudantes', {
+            const res = await fetch('/estudantes', {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ----------------- LOGOUT -----------------
     logoutBtn.addEventListener('click', async () => {
-        try { await fetch('http://localhost:3000/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
+        try { await fetch('/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
         localStorage.removeItem('token');
         window.location.href = 'login.html';
     });

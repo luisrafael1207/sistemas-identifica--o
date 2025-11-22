@@ -9,3 +9,12 @@ CREATE TABLE `usuarios` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO usuarios (nome, email, senha, tipo, ativo)
+VALUES (
+    'Administrador',
+    'admin@sistema.com',
+    '$2b$10$nZ6pQSeHtsBCWznJLq9Mhe86HYKSX1i1AQuUtyfU4tYJuwDhxl/Gu',
+    'admin',
+    1
+);

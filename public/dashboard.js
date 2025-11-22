@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
 
     const carregarResumo = async () => {
-        const data = await fetchAuth("http://localhost:3000/estudantes");
+        const data = await fetchAuth("/estudantes");
         if (!data) return;
 
         const estudantes = data.estudantes || data;
@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         if (!senha) return;
 
                         try {
-                            const res = await fetch("http://localhost:3000/auth/check-config-pass", {
+                            const res = await fetch("/auth/check-config-pass", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ password: senha })

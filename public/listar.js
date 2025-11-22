@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ----------------- EVENTOS -----------------
   btnCadastrar.addEventListener("click", () => window.location.href = "cadastro.html");
   btnSair.addEventListener("click", async () => {
-    try { await fetch("http://localhost:3000/auth/logout", { method: "POST", credentials: "include" }); } catch {}
+    try { await fetch("/auth/logout", { method: "POST", credentials: "include" }); } catch {}
     logout();
   });
   closeModal.addEventListener("click", esconderModal);
@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       criarSpinnerGlobal();
-      const res = await fetchAuth(`http://localhost:3000/estudantes/${id}`, {
+      const res = await fetchAuth(`/estudantes/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function carregarEstudantes() {
     criarSpinnerGlobal();
     try {
-      const res = await fetchAuth("http://localhost:3000/estudantes");
+      const res = await fetchAuth("/estudantes");
       if (!res) return;
       const data = await res.json();
       estudantesOriginais = data.estudantes || data;
@@ -251,7 +251,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!confirm("Tem certeza que deseja excluir este estudante?")) return;
       try {
         criarSpinnerGlobal();
-        const res = await fetchAuth(`http://localhost:3000/estudantes/${id}`, { method: "DELETE" });
+        const res = await fetchAuth(`/estudantes/${id}`, { method: "DELETE" });
         if (!res?.ok) throw new Error("Erro ao excluir estudante");
         estudantesOriginais = estudantesOriginais.filter(est => est.id != id);
         aplicarFiltros();

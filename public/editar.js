@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const carregarEstudante = async ()=>{
         criarSpinnerGlobal();
         try{
-            const res = await fetch(`http://localhost:3000/estudantes/${estudanteId}`, { headers:{ Authorization:`Bearer ${token}` } });
+            const res = await fetch(`/estudantes/${estudanteId}`, { headers:{ Authorization:`Bearer ${token}` } });
             const data = await res.json();
             if(!res.ok) throw new Error(data.message || "Erro ao buscar estudante");
             document.getElementById('nome').value = data.nome || '';
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(fotoBlob) formData.set('foto', fotoBlob, 'foto.jpg');
 
         try{
-            const res = await fetch(`http://localhost:3000/estudantes/${estudanteId}`, { 
+            const res = await fetch(`/estudantes/${estudanteId}`, { 
                 method: 'PUT', 
                 headers: { Authorization:`Bearer ${token}` }, 
                 body: formData 

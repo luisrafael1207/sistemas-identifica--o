@@ -1,56 +1,54 @@
-version: "3.8"
+version: "3.9"
 
 services:
   app:
+    container_name: sistema-app
     build: .
-    container_name: identificacao_app
     ports:
       - "3000:3000"
     environment:
-      - PORT=${PORT}
-      - DB_HOST=${DB_HOST}
-      - DB_USER=${DB_USER}
+      - PORT=3000
+      - DB_HOST=db
+      - DB_USER=root
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - ./:/usr/src/app
-      - /usr/src/app/node_modules
-    restart: unless-stopped
+    restart: always
+    command: ["npm", "start"]
 
   db:
     image: mysql:8.0
-    container_name: identificacao_db
+    container_name: sistema-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
     ports:
       - "3307:3306"
-    environment:
-      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-      - MYSQL_DATABASE=${DB_NAME}
-      - MYSQL_ROOT_HOST=%
     volumes:
-      - db_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
+      - ./identificacao_estudantes:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASSWORD}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${DB_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: always
 
   phpmyadmin:
     image: phpmyadmin:latest
-    container_name: identificacao_phpmyadmin
+    container_name: sistema-phpmyadmin
     depends_on:
       db:
         condition: service_healthy
     environment:
-      - PMA_HOST=db
-      - PMA_USER=${DB_USER}
-      - PMA_PASSWORD=${DB_PASSWORD}
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: ${DB_PASSWORD}
     ports:
       - "8081:80"
-    restart: unless-stopped
+    restart: always
 
 volumes:
-  db_data:
+  mysql_data:
